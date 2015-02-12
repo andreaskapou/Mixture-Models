@@ -27,9 +27,9 @@ gen.poisson <- function(N=500, K=2, pi=c(0.6,0.4), lambdas=c(8,22)){
   return (samples)
 }
 
-##============================================
-# Generate data: mixture of 1D Binomials     #
-##============================================
+##=============================================
+# Generate data: mixture of 1D Binomial       #
+##=============================================
 gen.binomial <- function(N=500, K=2, pi=c(0.6,0.4), p=c(0.3,0.8), r){
   # Sample the N components according to their mixing proportions
   components <- sample(1:K, prob=pi, size=N, replace=TRUE)
