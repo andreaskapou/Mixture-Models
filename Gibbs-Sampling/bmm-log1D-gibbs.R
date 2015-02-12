@@ -49,7 +49,6 @@ compute.resp <- function(X, pdf.w, K, Binom, pi.cur){
   for (k in 1:K) # Calculate the PDF of each cluster for each data point
     pdf.w[,k] <- log(pi.cur[k]) + dbinom(X, size=Binom$r, prob=Binom$p[k], log=TRUE)
   post.resp   <-  pdf.w - apply(pdf.w,1,logSumExp) # Normalize the log probability
-  #post.resp   <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalizarion
   post.resp   <- apply(post.resp, 2, exp) # Eponentiate to get actual probabilities
   return(post.resp)
 }

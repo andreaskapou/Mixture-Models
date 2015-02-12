@@ -44,9 +44,8 @@ pmm1D.gibbs <-  function(X, K=2, N.Sims, burnin, Poisson, pi.cur, dir.a){
 # Compute the responsibilities
 compute.resp <- function(X, pdf.w, K, Poisson, pi.cur){
   for (k in 1:K) # Calculate the PDF of each cluster for each data point
-    pdf.w[,k] <- log(pi.cur[k]) + dpois(X, lambda=Poisson$l[k], log=TRUE)
-  post.resp   <-  pdf.w - apply(pdf.w,1,logSumExp) # Normalize the log probability
-  post.resp   <- apply(post.resp, 2, exp) # Eponentiate to get actual probabilities
+    pdf.w[,k] <- pi.cur[k] * dpois(X, lambda=Poisson$l[k])
+  post.resp   <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalizarion
   return(post.resp)
 }
 # Update the mixture components 
