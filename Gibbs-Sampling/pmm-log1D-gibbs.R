@@ -1,4 +1,4 @@
-pmm1D.gibbs <-  function(X, K=2, N.Sims, burnin, Poisson, pi.cur, dir.a, logl=TRUE){
+pmm1D.gibbs <-  function(X, K=2, N.Sims, burnin, Poisson, pi.cur, dir.a){
   ##================================================================
   # Function which uses Gibbs sampling so as to find the posterior #
   # of the Hierarchical Dirichlet Finite Mixture Model with        #
@@ -15,7 +15,7 @@ pmm1D.gibbs <-  function(X, K=2, N.Sims, burnin, Poisson, pi.cur, dir.a, logl=TR
   
   for (t in 1:N.Sims){
     # Compute responsibilities
-    post.resp   <- compute.resp(X, pdf.w, K, Poisson, pi.cur, logl)
+    post.resp   <- compute.resp(X, pdf.w, K, Poisson, pi.cur)
     # Draw mixture components for ith simulation
     C.n         <- c.n.update(N, post.resp)
     # Calculate component counts of each cluster
@@ -42,24 +42,11 @@ pmm1D.gibbs <-  function(X, K=2, N.Sims, burnin, Poisson, pi.cur, dir.a, logl=TR
 }
 
 # Compute the responsibilities
-<<<<<<< HEAD
-compute.resp <- function(X, pdf.w, K, Poisson, pi.cur, logl){
-  if (logl){
-    for (k in 1:K) # Calculate the PDF of each cluster for each data point
-      pdf.w[,k] <- log(pi.cur[k]) + dpois(X, lambda=Poisson$l[k], log=TRUE)
-    post.resp   <-  pdf.w - apply(pdf.w,1,logSumExp) # Normalize the log probability
-    post.resp   <- apply(post.resp, 2, exp) # Eponentiate to get actual probabilities
-  }else{
-    for (k in 1:K) # Calculate the PDF of each cluster for each data point
-      pdf.w[,k] <- pi.cur[k] * dpois(X, lambda=Poisson$l[k])
-    post.resp   <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalizarion
-  }
-=======
 compute.resp <- function(X, pdf.w, K, Poisson, pi.cur){
   for (k in 1:K) # Calculate the PDF of each cluster for each data point
-    pdf.w[,k] <- pi.cur[k] * dpois(X, lambda=Poisson$l[k])
-  post.resp   <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalizarion
->>>>>>> bea571ef143cb23641d5b1b226b20d818995a223
+    pdf.w[,k] <- log(pi.cur[k]) + dpois(X, lambda=Poisson$l[k], log=TRUE)
+  post.resp   <-  pdf.w - apply(pdf.w,1,logSumExp) # Normalize the log probability
+  post.resp   <- apply(post.resp, 2, exp) # Eponentiate to get actual probabilities
   return(post.resp)
 }
 # Update the mixture components 
