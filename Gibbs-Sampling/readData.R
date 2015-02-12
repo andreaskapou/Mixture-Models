@@ -38,7 +38,9 @@ gen.binomial <- function(N=500, K=2, pi=c(0.6,0.4), p=c(0.3,0.8), r){
   return (samples)
 }
 
-##=========================================
-# Generate data from Old Faithful Dataset #
-##=========================================
-#X <-  faithful$waiting
+##=====================================
+# Read data from Old Faithful Dataset #
+##=====================================
+read.faithful1D <- function(dim=2){
+  X <-  faithful[,dim]
+}
