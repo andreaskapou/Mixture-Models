@@ -4,19 +4,19 @@
 ##===============================
 cur.dir <- dirname(parent.frame(2)$ofile)
 setwd(cur.dir)
-source("weightedAverage.R")
-source("readData.R")
+source("../readData.R")
 
 ##====================
 # Generate the data  #
 ##====================
-X <- gen.poisson(K=3, pi=c(.3,.2,.5), lambdas=c(5,20,50))
+epsilon <- 0.00001    # Convergence paramater
+K       <- 3          # Number of clusters
+X       <- gen.poisson(K=K, pi=c(.3,.2,.5), lambdas=c(5,20,50))
 
 ##=========================
 # Initialize variables    #
 ##=========================
 N       <- length(X)  # Length of the dataset
-K       <- 3;         # Number of clusters
 cl      <- kmeans(X, K, nstart = 25) # Use Kmeans with random starts
 C.n     <- cl$cluster   # get the mixture components
 pi      <- as.vector(table(C.n)/length(X)) # mixing proportions
@@ -31,30 +31,29 @@ log.likel   <- 0
 
 for (i in 1:1000){  # Loop until convergence
   ##===============================================
-  ## STEP 3a: Expectation
-  # Calculate the probability for each data point for each distribution.
-  pdf       <- matrix(, N, K)   # Hold the PDF of each point on each cluster k
+  ## Expectation step
+  pdf.w     <- matrix(, N, K)   # Hold the PDF of each point on each cluster k
   for (k in 1:K){ # Calculate the PDF of each cluster for each data point
-    pdf[,k] = dpois(X, lambda=lambdas[k])
+    pdf.w[,k] <- pi[k] * dpois(X, lambda=lambdas[k])
   }
-  pdf.w <- pdf * pi # Weight the probabilities according to mixing proportions
-  post.resp <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalizarion
+  post.resp   <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalizarion
   
   ##===============================================
-  ## STEP 3b: Maximization
-  # Calculate the probability for each data point for each distribution.
+  ## Maximization step
   prev.log.likel <- log.likel # Store to check for convergence
   for (k in 1:K){
     # Update mixing proportions
     pi[k]       <- sum(post.resp[, k] / sum(post.resp))
     # Update mean for cluster 'k' by taking the weighted average of *all* data points.
-    lambdas[k]  <- weightedAverage(post.resp[, k], X)
+    val         <- t(post.resp[, k]) %*% X
+    lambdas[k]  <- val / sum(post.resp[,k])
   }
   # Check for convergence.
   log.likel   <- sum(log(sum(pdf.w)))
-  if (log.likel == prev.log.likel){
+  if (abs(log.likel-prev.log.likel) < epsilon){
     break
   }
+  print(log.likel)
 } #End of Expectation Maximization loop.
 
 ##=====================================
