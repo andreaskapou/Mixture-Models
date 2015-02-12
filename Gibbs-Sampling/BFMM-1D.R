@@ -7,6 +7,7 @@ setwd(cur.dir)
 library(MCMCpack)
 source('../readData.R')
 source('bmm1D-gibbs.R')
+source('logSumExp.R')
 
 ##===========================
 # Initialize main variables #
