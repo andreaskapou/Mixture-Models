@@ -26,21 +26,22 @@ X <- gen.gaussian(N=N, K=K, pi=c(.4,.3,.3), mus=c(10,20,30), stds=c(2,3,1))
 ##=========================
 # Initialize parameters   #
 ##=========================
-cl              <- kmeans(X, K, nstart = 25)  # Use Kmeans with random starts
-C.n             <- cl$cluster                 # get the mixture components
+cl              <- kmeans(X, K, nstart = 25)    # Use Kmeans with random starts
+C.n             <- cl$cluster                   # get the mixture components
 pi.cur          <- as.vector(table(C.n)/length(X)) # mixing proportions
-dir.a           <- rep(1/K, K)                # Dirichlet concentration parameter
-Normal$mu       <- as.vector(cl$centers)      # Normal mean for each cluster
+dir.a           <- rep(1/K, K)                  # Dirichlet concentration parameter
+Normal$mu       <- as.vector(cl$centers)        # Normal mean for each cluster
 for (k in 1:K){
-  Normal$Tau[k] <- 1/var(X[C.n==k])           # Normal precision for each cluster
+  Normal$Tau[k] <- 1/var(X[C.n==k])             # Normal precision for each cluster
 }
 Normal$Norm     <- list(mu.0 = 0, tau.0=1/100)  # Normal hyperparameters
 Normal$Gamma    <- list(a=1, b=1)               # Gamma hyperparameters
+logl            <- TRUE                         # If we want to compute log likel
 
 ##===================================
 # Do inference using Gibbs sampling #
 ##===================================
-gibbs <- gmm1D.gibbs(X, K, N.Sims, burnin, Normal, pi.cur, dir.a)
+gibbs <- gmm1D.gibbs(X, K, N.Sims, burnin, Normal, pi.cur, dir.a, logl=logl)
 
 ##=====================================
 # Plot the data points and their pdfs #

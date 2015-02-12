@@ -1,4 +1,4 @@
-gmm1D.gibbs <-  function(X, K=2, N.Sims, burnin, Normal, pi.cur, dir.a){
+gmm1D.gibbs <-  function(X, K=2, N.Sims, burnin, Normal, pi.cur, dir.a, logl=TRUE){
   ##===================================================================
   # Function which uses Gibbs sampling so as to find the posterior    #
   # of the Hierarchical Dirichlet Finite Mixture Model with           #
@@ -17,7 +17,7 @@ gmm1D.gibbs <-  function(X, K=2, N.Sims, burnin, Normal, pi.cur, dir.a){
 
   for (t in 1:N.Sims){
     # Compute responsibilities
-    post.resp   <- compute.resp(X, pdf.w, K, Normal, pi.cur) 
+    post.resp   <- compute.resp(X, pdf.w, K, Normal, pi.cur, logl) 
     # Draw mixture components for ith simulation
     C.n         <- c.n.update(N, post.resp)
     # Calculate component counts of each cluster
@@ -49,12 +49,18 @@ gmm1D.gibbs <-  function(X, K=2, N.Sims, burnin, Normal, pi.cur, dir.a){
 }
   
 # Compute the responsibilities
-compute.resp <- function(X, pdf.w, K, Normal, pi.cur){
-  for (k in 1:K) # Calculate the PDF of each cluster for each data point
-    pdf.w[,k] <- log(pi.cur[k]) + dnorm(X, mean=Normal$mu[k], sd=1/sqrt(Normal$Tau[k]), log=TRUE)
-  post.resp   <-  pdf.w - apply(pdf.w,1,logSumExp) # Normalize the log probability
-  #post.resp   <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalizarion
-  post.resp   <- apply(post.resp, 2, exp) # Eponentiate to get actual probabilities
+compute.resp <- function(X, pdf.w, K, Normal, pi.cur, logl){
+  if (logl){
+    for (k in 1:K) # Calculate the PDF of each cluster for each data point
+      pdf.w[,k] <- log(pi.cur[k]) + dnorm(X, mean=Normal$mu[k], 
+                                          sd=1/sqrt(Normal$Tau[k]), log=TRUE)
+    post.resp   <-  pdf.w - apply(pdf.w,1,logSumExp) # Normalize the log probability
+    post.resp   <- apply(post.resp, 2, exp) # Eponentiate to get actual probabilities
+  }else{
+    for (k in 1:K) # Calculate the PDF of each cluster for each data point
+      pdf.w[,k] <- pi.cur[k] * dnorm(X, mean=Normal$mu[k], sd=1/sqrt(Normal$Tau[k]))
+    post.resp   <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalizarion
+  }
   return(post.resp)
 }
 # Update the mixture components 

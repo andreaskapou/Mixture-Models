@@ -34,11 +34,12 @@ dir.a       <- rep(1/K, K)                  # Dirichlet concentration parameter
 Binom$p     <- as.vector(cl$centers)        # Binomial probability for each cluster
 Binom$Beta  <- list(a=1, b=1)               # Initialize Beta hyperparameters
 Binom$r     <- matrix(r, ncol=1)            # Total number of trials for each object
+logl        <- TRUE                         # If we want to compute log likelihoods
 
 ##===================================
 # Do inference using Gibbs sampling #
 ##===================================
-gibbs <- bmm1D.gibbs(X, K, N.Sims, burnin, Binom, pi.cur, dir.a)
+gibbs <- bmm1D.gibbs(X, K, N.Sims, burnin, Binom, pi.cur, dir.a, logl=logl)
 
 ##=====================================
 # Plot the data points and their pdfs #
