@@ -1,4 +1,4 @@
-Finite Mixture Models using Gibbs Sampling
+#Finite Mixture Models using Gibbs Sampling
 
 Code for modeling data using finite Dirichlet mixture models under a Bayesian approach.
 It is implemented for Gaussian mixtures, Binomial mixtures and Poisson mixtures. 
