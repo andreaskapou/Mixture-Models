@@ -21,7 +21,7 @@ Normal      <- list() # Create a Normal object
 ##====================
 # Generate the data  #
 ##====================
-X <- gen.gaussian(N=N, K=K, pi=c(.4,.3,.3), mus=c(10,20,30), stds=c(2,3,1))
+X <- gen.gaussian(N=N, K=K, pi.c=c(.4,.3,.3), mus=c(10,20,30), stds=c(2,3,1))
 
 ##=========================
 # Initialize parameters   #

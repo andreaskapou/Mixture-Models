@@ -11,7 +11,7 @@ source("../readData.R")
 ##====================
 epsilon <- 0.00001    # Convergence paramater
 K       <- 3          # Number of clusters
-X       <- gen.gaussian(K=K, pi=c(.4,.3,.3), mus=c(10,20,30), stds=c(2,3,1))
+X       <- gen.gaussian(K=K, pi.c=c(.4,.3,.3), mus=c(10,20,30), stds=c(2,3,1))
 
 ##=========================
 # Initialize variables    #
@@ -20,7 +20,7 @@ N       <- length(X)                  # Length of the dataset
 cl      <- kmeans(X, K, nstart = 25)  # Use Kmeans with random starts
 C.n     <- cl$cluster                 # get the mixture components
 mu      <- as.vector(cl$centers)      # means for each Gaussian
-pi      <- as.vector(table(C.n)/length(X)) # mixing proportions
+pi.c    <- as.vector(table(C.n)/length(X)) # mixing proportions
 sigma2  <- vector(length=K)           # Variance for each Gaussian
 for (k in 1:K){
   sigma2[k]  <- var(X[C.n==k])
@@ -37,7 +37,7 @@ for (i in 1:1000){  # Loop until convergence
   ## Expectation Step
   pdf.w       <- matrix(, N, K)   # Hold the PDF of each point on each cluster k
   for (k in 1:K){ # Calculate the weighted PDF of each cluster for each data point
-    pdf.w[,k] <- pi[k] * dnorm(X, mean=mu[k], sd=sqrt(sigma2[k]))
+    pdf.w[,k] <- pi.c[k] * dnorm(X, mean=mu[k], sd=sqrt(sigma2[k]))
   }
   post.resp   <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalizarion
   
@@ -46,7 +46,7 @@ for (i in 1:1000){  # Loop until convergence
   prev.log.likel <- log.likel # Store to check for convergence
   for (k in 1:K){
     # Update mixing proportions
-    pi[k]     <- mean(post.resp[, k])
+    pi.c[k]   <- mean(post.resp[, k])
     # Update mean for cluster 'k' by taking the weighted average of *all* data points.
     val       <- t(post.resp[, k]) %*% X
     mu[k]     <- val / sum(post.resp[, k])
@@ -75,6 +75,6 @@ mixture = 0.0
 for (k in 1:K){
   # Calculate the estimated density
   density <- dnorm(x, mean=mu[k],sd=sqrt(sigma2[k]))
-  mixture <- mixture + density * pi[k]
+  mixture <- mixture + density * pi.c[k]
 }
 lines(x,mixture,col="red",lwd=2)

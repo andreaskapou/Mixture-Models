@@ -22,7 +22,7 @@ Binom       <- list() # Create a Binomial object
 # Generate the data  #
 ##====================
 r <- rbinom(n=N, size=50, prob=.8)
-X <- gen.binomial(N=N, K=K, pi=c(.4,.3,.3), p=c(0.2,0.9, 0.4), r=r)
+X <- gen.binomial(N=N, K=K, pi.c=c(.4,.3,.3), p=c(0.2,0.9, 0.4), r=r)
 
 ##=========================
 # Initialize variables    #

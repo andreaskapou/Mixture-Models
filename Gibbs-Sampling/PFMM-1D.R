@@ -21,7 +21,7 @@ Poisson     <- list() # Create a Poisson object
 ##====================
 # Generate the data  #
 ##====================
-X <- gen.poisson(N=N, K=K, pi=c(.3,.2,.5), lambdas=c(7,26,60))
+X <- gen.poisson(N=N, K=K, pi.c=c(.3,.2,.5), lambdas=c(7,26,60))
 
 ##=========================
 # Initialize variables    #
