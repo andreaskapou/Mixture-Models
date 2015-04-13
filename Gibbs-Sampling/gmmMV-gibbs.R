@@ -43,8 +43,8 @@ gmmMV.gibbs <-  function(X, K=2, N.Sims, burnin, Normal, pi.cur, dir.a){
       if (is.vector(Normal$Tau[[1]]))  # If diagonal covariance matrix
         ssd.k[k,]   <- rowSums(apply(X[C.n[,k] == 1,],1,'-',x.k.bar[k,])^2)
       else
-        ssd.k[[k]] <- apply(X[C.n==k,],1,'-',x.k.bar[k,]) %*% 
-                                        t(apply(X[C.n==k,],1,'-',x.k.bar[k,]))
+        ssd.k[[k]] <- apply(X[C.n[,k] == 1,],1,'-',x.k.bar[k,]) %*% 
+                              t(apply(X[C.n[,k] == 1,],1,'-',x.k.bar[k,]))
     }
     
     if (is.vector(Normal$Tau[[1]])){  # If diagonal covariance matrix
@@ -68,7 +68,7 @@ gmmMV.gibbs <-  function(X, K=2, N.Sims, burnin, Normal, pi.cur, dir.a){
         }
       }else{
         for (k in 1:K){
-          total.Tau[[k]]  <- total.Tau[[k]] + Tau.cur[k,]
+          total.Tau[[k]]  <- total.Tau[[k]] + Tau.cur[[k]]
         }
       }
       mu.draws[[t - burnin]]    <- mu.cur
