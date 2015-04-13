@@ -30,7 +30,7 @@ cl        <- kmeans(X, K, nstart = 25)    # Use Kmeans with random starts
 C.n       <- cl$cluster                   # get the mixture components
 pi.cur    <- as.vector(table(C.n)/NROW(X))# Mixing proportions
 dir.a     <- rep(1/K, K)                  # Dirichlet concentration parameter
-
+logl      <- TRUE                         # If we want to compute log likel
 for (k in 1:K){
   Normal$mu[[k]]  <- cl$centers[k,]       # Normal mean for each cluster
                                           # Normal precision matrix for each cluster
@@ -46,7 +46,7 @@ Normal$Norm     <- list(mu.0=rep(0,D), tau.0=rep(1/100,D))  # Normal hyperparame
 # Do inference using Gibbs sampling #
 ##===================================
 invisible(readline(prompt="Run Gibbs sampling with diagonal covariance matrix..."))
-gibbs <- gmmMV.gibbs(X, K, N.Sims, burnin, Normal, pi.cur, dir.a)
+gibbs <- gmmMV.gibbs(X, K, N.Sims, burnin, Normal, pi.cur, dir.a, logl)
 
 invisible(readline(prompt="Press [enter] to show the plot"))
 ##=====================================
@@ -93,7 +93,7 @@ Normal$Wishart <- list(v=D+2, k.0=0.01)
 # Do inference using Gibbs sampling #
 ##===================================
 invisible(readline(prompt="Run Gibbs sampling with full covariance matrix..."))
-gibbs <- gmmMV.gibbs(X, K, N.Sims, burnin, Normal, pi.cur, dir.a)
+gibbs <- gmmMV.gibbs(X, K, N.Sims, burnin, Normal, pi.cur, dir.a, logl)
 
 invisible(readline(prompt="Press [enter] to show the plot"))
 ##=====================================

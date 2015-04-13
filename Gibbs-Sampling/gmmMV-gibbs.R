@@ -1,4 +1,4 @@
-gmmMV.gibbs <-  function(X, K=2, N.Sims, burnin, Normal, pi.cur, dir.a){
+gmmMV.gibbs <-  function(X, K=2, N.Sims, burnin, Normal, pi.cur, dir.a, logl){
   ##=====================================================================
   # Function which uses Gibbs sampling so as to find the posterior      #
   # of the Hierarchical Dirichlet Finite Mixture Model with             #
@@ -29,7 +29,7 @@ gmmMV.gibbs <-  function(X, K=2, N.Sims, burnin, Normal, pi.cur, dir.a){
   #all(m[!diag(nrow(m))] == 0) 
   for (t in 1:N.Sims){
     # Compute responsibilities
-    post.resp   <- compute.resp(X, pdf.w, K, Normal, pi.cur)
+    post.resp   <- compute.resp(X, pdf.w, K, Normal, pi.cur, logl)
     # Draw mixture components for ith simulation
     C.n         <- c.n.update(N, post.resp)
     # Calculate component counts of each cluster
@@ -81,17 +81,31 @@ gmmMV.gibbs <-  function(X, K=2, N.Sims, burnin, Normal, pi.cur, dir.a){
 }
 
 # Compute the responsibilities
-compute.resp <- function(X, pdf.w, K, Normal, pi.cur){
-  if (is.vector(Normal$Tau[[1]])){ # If diagonal covariance matrix
-    for (k in 1:K)  # Calculate the PDF of each cluster for each data point
-      pdf.w[,k] <- pi.cur[k] * dmvnorm(X, mean=Normal$mu[[k]],
-                                        sigma=diag(1/Normal$Tau[[k]]))
+compute.resp <- function(X, pdf.w, K, Normal, pi.cur, logl){
+  if (logl){
+    if (is.vector(Normal$Tau[[1]])){ # If diagonal covariance matrix
+      for (k in 1:K)  # Calculate the PDF of each cluster for each data point
+        pdf.w[,k] <- pi.cur[k] * dmvnorm(X, mean=Normal$mu[[k]],
+                                        sigma=diag(1/Normal$Tau[[k]]), log=TRUE)
+    }else{
+      for (k in 1:K)  # Calculate the PDF of each cluster for each data point
+        pdf.w[,k] <- pi.cur[k] * dmvnorm(X, mean=Normal$mu[[k]], 
+                                        sigma=solve(Normal$Tau[[k]]), log=TRUE)
+    }
+    post.resp   <-  pdf.w - apply(pdf.w,1,logSumExp) # Normalize the log probability
+    post.resp   <- apply(post.resp, 2, exp) # Eponentiate to get actual probabilities
   }else{
-    for (k in 1:K)  # Calculate the PDF of each cluster for each data point
-      pdf.w[,k] <- pi.cur[k] * dmvnorm(X, mean=Normal$mu[[k]], 
-                                        sigma=solve(Normal$Tau[[k]]))
+    if (is.vector(Normal$Tau[[1]])){ # If diagonal covariance matrix
+      for (k in 1:K)  # Calculate the PDF of each cluster for each data point
+        pdf.w[,k] <- pi.cur[k] * dmvnorm(X, mean=Normal$mu[[k]],
+                                         sigma=diag(1/Normal$Tau[[k]]))
+    }else{
+      for (k in 1:K)  # Calculate the PDF of each cluster for each data point
+        pdf.w[,k] <- pi.cur[k] * dmvnorm(X, mean=Normal$mu[[k]], 
+                                         sigma=solve(Normal$Tau[[k]]))
+    }
+    post.resp   <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalizarion
   }
-  post.resp   <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalizarion
   return(post.resp)
 }
 # Update the mixture components
