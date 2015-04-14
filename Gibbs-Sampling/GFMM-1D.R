@@ -34,7 +34,7 @@ Normal$mu       <- as.vector(cl$centers)        # Normal mean for each cluster
 for (k in 1:K){
   Normal$Tau[k] <- 1/var(X[C.n==k])             # Normal precision for each cluster
 }
-Normal$Norm     <- list(mu.0 = 0, tau.0=1/100)  # Normal hyperparameters
+Normal$Norm     <- list(mu.0=0, tau.0=1/100)    # Normal hyperparameters
 Normal$Gamma    <- list(a=1, b=1)               # Gamma hyperparameters
 logl            <- TRUE                         # If we want to compute log likel
 
