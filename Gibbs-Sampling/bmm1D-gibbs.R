@@ -5,20 +5,20 @@ bmm1D.gibbs <-  function(X, K=2, N.Sims, burnin, Binom, pi.cur, dir.a, logl=TRUE
   # Beta prior on probability , using one dimensional dataset.     #
   ##================================================================
   
-  N             <- length(X)        # Length of the dataset
-  post.resp     <- matrix(, N, K)   # Posterior responsibilities
-  pdf.w         <- matrix(, N, K)   # PDF of each point on each cluster k
-  C.n           <- matrix(, N, K)   # Mixture components
+  N             <- length(X)                  # Length of the dataset
+  post.resp     <- matrix(0, nrow=N, ncol=K)  # Posterior responsibilities
+  pdf.w         <- matrix(0, nrow=N, ncol=K)  # PDF of each point on each cluster k
+  C.n           <- matrix(0, nrow=N, ncol=K)  # Mixture components
   sum.x.k       <- vector(length=K) # Sample sum for each cluster k 
   diff.k        <- vector(length=K) # Sum of difference for each cluster k 
-  p.draws       <- matrix(, N.Sims-burnin, K) # Success probability of each Binomial
-  pi.draws      <- matrix(, N.Sims-burnin, K) # Mixing Proportions
+  p.draws       <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Success prob of each trial
+  pi.draws      <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Mixing Proportions
   
-  for (t in 1:N.Sims){
+  for (t in 1:N.Sims){  # Start Gibbs sampling
     # Compute responsibilities
     post.resp   <- compute.resp(X, pdf.w, K, Binom, pi.cur, logl)
     # Draw mixture components for ith simulation
-    C.n         <- c.n.update(N, post.resp)
+    C.n         <- c.n.update(N, K, post.resp)
     # Calculate component counts of each cluster
     N.k         <- colSums(C.n)
     # Update mixing proportions using new cluster component counts
@@ -59,8 +59,8 @@ compute.resp <- function(X, pdf.w, K, Binom, pi.cur, logl){
   return(post.resp)
 }
 # Update the mixture components 
-c.n.update <- function(N, post.resp){
-  c.i.draw <- matrix(, N, K)
+c.n.update <- function(N, K, post.resp){
+  c.i.draw <- matrix(0, nrow=N, ncol=K)
   for (i in 1:N){ # Sample one point from a multinomial i.e. ~ Discrete
     c.i.draw[i,] = rmultinom(1, 1, post.resp[i,])
   }

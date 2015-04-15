@@ -5,9 +5,9 @@
 cur.dir <- dirname(parent.frame(2)$ofile)
 setwd(cur.dir)
 library(MCMCpack)
-source('../readData.R')
+library(R.utils)
 source('bmm1D-gibbs.R')
-source('logSumExp.R')
+sourceDirectory("../lib", modifiedOnly=FALSE)
 
 ##===========================
 # Initialize main variables #
@@ -29,7 +29,7 @@ X <- gen.binomial(N=N, K=K, pi.c=c(.4,.3,.3), p=c(0.2,0.9, 0.4), r=r)
 ##=========================
 cl          <- kmeans(X/r, K, nstart = 25)  # Use Kmeans with random starts
 C.n         <- cl$cluster                   # Get the mixture components
-pi.cur      <- as.vector(table(C.n)/length(X)) # Mixing proportions
+pi.cur      <- as.vector(table(C.n)/NROW(X))# Mixing proportions
 dir.a       <- rep(1/K, K)                  # Dirichlet concentration parameter
 Binom$p     <- as.vector(cl$centers)        # Binomial probability for each cluster
 Binom$Beta  <- list(a=1, b=1)               # Initialize Beta hyperparameters
@@ -44,6 +44,7 @@ gibbs <- bmm1D.gibbs(X, K, N.Sims, burnin, Binom, pi.cur, dir.a, logl=logl)
 ##=====================================
 # Plot the data points and their pdfs #
 ##=====================================
+invisible(readline(prompt="Press [enter] to show the plot"))
 # Create x points from min(X) to max(X)
 x <- seq(from = min(X)-1, to = max(X)+1, by = 1)
 hist(X, breaks = 22, freq=FALSE, col="lightblue", xlim=c(min(X)-1,max(X)+1),
