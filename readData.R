@@ -1,5 +1,6 @@
 ##=============================================
-# Script that will be called to read the data #
+# Main script that will be called to read and #
+# generate data                               #
 ##============================================= 
 
 ##=============================================
@@ -8,10 +9,29 @@
 gen.gaussian <- function(N=500, K=2, pi.c=c(0.6,0.4), mus=c(10,20), stds=c(2,3)){
   # Sample the N components according to their mixing proportions
   components <- sample(1:K, prob=pi.c, size=N, replace=TRUE)
-  # Generate N random samples from a Gaussian, with the corresponding weights
+  # Generate N random samples from a 1D-Gaussian, with the corresponding weights
   samples    <- rnorm(n=N,mean=mus[components],sd=stds[components])
   
   #plot(density(samples),main="Density Estimate of the Mixture Model")
+  return (samples)
+}
+
+##=============================================
+# Generate data:  mixture of MV Gaussians     #
+##=============================================
+gen.MV.gaussian <- function(N=500, K=2, pi.c=c(0.6,0.4), mus=matrix(c(1.5,4,4,1.5),2,2), S=list()){
+  if (missing(S)){
+    S[[1]] <- matrix(c(1,0,0,1),2,2)
+    S[[2]] <- matrix(c(1,.7,.7,1),2,2)
+  }
+  # Sample the N components according to their mixing proportions
+  components <- sample(1:K, prob=pi.c, size=N, replace=TRUE)
+  # Generate N random samples from a MV-Gaussian, with the corresponding weights
+  # Rows of the mean matrix are clusters and columns are the dimensionality of the data
+  D <- NCOL(mus)
+  samples   <- matrix(0, nrow=N, ncol=D)
+  for (i in 1:N)
+    samples[i,]    <- rmvnorm(1,mean=mus[components[i],], sigma=S[[components[i]]])
   return (samples)
 }
 
