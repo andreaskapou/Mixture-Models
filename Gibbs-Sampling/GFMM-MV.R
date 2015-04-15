@@ -5,10 +5,10 @@
 cur.dir <- dirname(parent.frame(2)$ofile)
 setwd(cur.dir)
 library(MCMCpack)
+library(R.utils)
 require(mvtnorm)
-source('../readData.R')
 source('gmmMV-gibbs.R')
-source('logSumExp.R')
+sourceDirectory("../lib", modifiedOnly=FALSE)
 
 ##===========================
 # Initialize main variables #
