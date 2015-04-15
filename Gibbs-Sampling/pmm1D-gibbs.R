@@ -5,24 +5,24 @@ pmm1D.gibbs <-  function(X, K=2, N.Sims, burnin, Poisson, pi.cur, dir.a, logl=TR
   # Gamma prior on lambda, using one dimensional dataset.          #
   ##================================================================
   
-  N             <- length(X)        # Length of the dataset
-  post.resp     <- matrix(, N, K)   # Posterior responsibilities
-  pdf.w         <- matrix(, N, K)   # PDF of each point on each cluster k
-  C.n           <- matrix(, N, K)   # Mixture components
-  x.k.bar       <- vector(length=K) # Sample mean for each cluster k 
-  lambda.draws  <- matrix(, N.Sims-burnin, K) # Mean of each Poisson
-  pi.draws      <- matrix(, N.Sims-burnin, K) # Mixing Proportions
+  N             <- length(X)                  # Length of the dataset
+  post.resp     <- matrix(0, nrow=N, ncol=K)  # Posterior responsibilities
+  pdf.w         <- matrix(0, nrow=N, ncol=K)  # PDF of each point on each cluster k
+  C.n           <- matrix(0, nrow=N, ncol=K)  # Mixture components
+  x.k.bar       <- vector(length=K)           # Sample mean for each cluster k 
+  lambda.draws  <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Mean of each Poisson
+  pi.draws      <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Mixing Proportions
   
   for (t in 1:N.Sims){
     # Compute responsibilities
     post.resp   <- compute.resp(X, pdf.w, K, Poisson, pi.cur, logl)
     # Draw mixture components for ith simulation
-    C.n         <- c.n.update(N, post.resp)
+    C.n         <- c.n.update(N, K, post.resp)
     # Calculate component counts of each cluster
     N.k         <- colSums(C.n)
     # Update mixing proportions using new cluster component counts
     pi.cur      <- pi.update(dir.a, N.k) 
-    for (k in 1:K){ 
+    for (k in 1:K){
       if (N.k[k] == 0){ # If there are no objects in the cluster
         x.k.bar[k]  <- 0
       }else{ # Else, calculate sample mean for each cluster
@@ -56,8 +56,8 @@ compute.resp <- function(X, pdf.w, K, Poisson, pi.cur, logl){
   return(post.resp)
 }
 # Update the mixture components 
-c.n.update <- function(N, post.resp){
-  c.i.draw <- matrix(, N, K)
+c.n.update <- function(N, K, post.resp){
+  c.i.draw <- matrix(0, nrow=N, ncol=K)
   for (i in 1:N){ # Sample one point from a multinomial i.e. ~ Discrete
     c.i.draw[i,] = rmultinom(1, 1, post.resp[i,])
     #c.i.draw[i] <- sample(1:clusters, size=1, prob=post.resp[i,],replace=TRUE)
