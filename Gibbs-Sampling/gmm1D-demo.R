@@ -28,7 +28,7 @@ X <- gen.gaussian(N=N, K=K, pi.c=c(.4,.3,.3), mus=c(10,20,30), stds=c(2,3,1))
 ##=========================
 cl              <- kmeans(X, K, nstart = 25)    # Use Kmeans with random starts
 C.n             <- cl$cluster                   # get the mixture components
-pi.cur          <- as.vector(table(C.n)/length(X)) # mixing proportions
+pi.cur          <- as.vector(table(C.n)/NROW(X))# mixing proportions
 dir.a           <- rep(1/K, K)                  # Dirichlet concentration parameter
 Normal$mu       <- as.vector(cl$centers)        # Normal mean for each cluster
 for (k in 1:K){
