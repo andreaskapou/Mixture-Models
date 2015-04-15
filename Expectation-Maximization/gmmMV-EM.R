@@ -34,6 +34,7 @@ for (k in 1:K){
 # Hold responsibilities that component k takes on explaining the observation x.n
 post.resp   <- matrix(, N, K)
 log.likel   <- 0
+ll          <- 0
 
 for (i in 1:1000){  # Loop until convergence
   ##===============================================
