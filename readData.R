@@ -26,9 +26,9 @@ gen.MV.gaussian <- function(N=500, K=2, pi.c=c(0.6,0.4), mus=matrix(c(1.5,4,4,1.
   }
   # Sample the N components according to their mixing proportions
   components <- sample(1:K, prob=pi.c, size=N, replace=TRUE)
-  # Generate N random samples from a MV-Gaussian, with the corresponding weights
   # Rows of the mean matrix are clusters and columns are the dimensionality of the data
-  D <- NCOL(mus)
+  D         <- NCOL(mus)
+  # Generate N random samples from a MV-Gaussian, with the corresponding weights
   samples   <- matrix(0, nrow=N, ncol=D)
   for (i in 1:N)
     samples[i,]    <- rmvnorm(1,mean=mus[components[i],], sigma=S[[components[i]]])
