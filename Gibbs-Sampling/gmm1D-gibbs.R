@@ -5,21 +5,21 @@ gmm1D.gibbs <-  function(X, K=2, N.Sims, burnin, Normal, pi.cur, dir.a, logl=TRU
   # Normal-Gamma priors on mu and Tau, using one dimensional dataset  #
   ##===================================================================
 
-  N             <- length(X)        # Length of the dataset
-  post.resp     <- matrix(, N, K)   # Posterior responsibilities
-  pdf.w         <- matrix(, N, K)   # PDF of each point on each cluster k
-  C.n           <- matrix(, N, K)   # Mixture components
+  N             <- length(X)                # Length of the dataset
+  post.resp     <- matrix(, nrow=N, ncol=K) # Posterior responsibilities
+  pdf.w         <- matrix(, nrow=N, ncol=K) # PDF of each point on each cluster k
+  C.n           <- matrix(, nrow=N, ncol=K) # Mixture components
   x.k.bar       <- vector(length=K) # Sample mean for each cluster k 
   ssd.k         <- vector(length=K) # Sum of square differences on each cluster k
-  mu.draws      <- matrix(, N.Sims-burnin, K) # Mean of each Gaussian
-  tau.draws     <- matrix(, N.Sims-burnin, K) # Precision of each Gaussian
-  pi.draws      <- matrix(, N.Sims-burnin, K) # Mixing Proportions
+  mu.draws      <- matrix(, nrow=N.Sims-burnin, ncol=K) # Mean of each Gaussian
+  tau.draws     <- matrix(, nrow=N.Sims-burnin, ncol=K) # Precision of each Gaussian
+  pi.draws      <- matrix(, nrow=N.Sims-burnin, ncol=K) # Mixing Proportions
 
-  for (t in 1:N.Sims){
+  for (t in 1:N.Sims){  # Start Gibbs sampling
     # Compute responsibilities
     post.resp   <- compute.resp(X, pdf.w, K, Normal, pi.cur, logl) 
     # Draw mixture components for ith simulation
-    C.n         <- c.n.update(N, post.resp)
+    C.n         <- c.n.update(N, K, post.resp)
     # Calculate component counts of each cluster
     N.k         <- colSums(C.n)
     # Update mixing proportions using new cluster component counts
@@ -64,8 +64,8 @@ compute.resp <- function(X, pdf.w, K, Normal, pi.cur, logl){
   return(post.resp)
 }
 # Update the mixture components 
-c.n.update <- function(N, post.resp){
-  c.i.draw <- matrix(, N, K)
+c.n.update <- function(N, K, post.resp){
+  c.i.draw <- matrix(, nrow=N, ncol=K)
   for (i in 1:N){ # Sample one point from a multinomial i.e. ~ Discrete
     c.i.draw[i,] = rmultinom(1, 1, post.resp[i,])
     #c.i.draw[i] <- which(as.vector(rmultinom(1,1,post.resp[i,])) == TRUE)

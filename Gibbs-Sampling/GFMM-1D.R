@@ -5,9 +5,9 @@
 cur.dir <- dirname(parent.frame(2)$ofile)
 setwd(cur.dir)
 library(MCMCpack)
-source('../readData.R')
+library(R.utils)
 source('gmm1D-gibbs.R')
-source('logSumExp.R')
+sourceDirectory("../lib", modifiedOnly=FALSE)
 
 ##===========================
 # Initialize main variables #
@@ -46,11 +46,11 @@ gibbs <- gmm1D.gibbs(X, K, N.Sims, burnin, Normal, pi.cur, dir.a, logl=logl)
 ##=====================================
 # Plot the data points and their pdfs #
 ##=====================================
+invisible(readline(prompt="Press [enter] to show the plot"))
 # Create x points from min(X) to max(X)
 x <- seq(from = min(X)-1, to = max(X)+1, by = 0.1)
 hist(X, breaks = 22, freq=FALSE, col="lightblue", xlim=c(min(X)-1,max(X)+1),
      ylim = c(0.0, .20), main=paste("Density plot of",K,"Gaussian Mixtures"),xlab="x")
-
 mixture = 0.0
 for (k in 1:K){
   # Calculate the estimated density
