@@ -91,8 +91,8 @@ compute.resp <- function(X, pdf.w, K, Normal, pi.cur, logl){
         pdf.w[,k] <- log(pi.cur[k]) + dmvnorm(X, mean=Normal$mu[[k]], 
                                         sigma=solve(Normal$Tau[[k]]), log=TRUE)
     }
-    post.resp   <-  pdf.w - apply(pdf.w,1,logSumExp) # Normalize the log probability
-    post.resp   <- apply(post.resp, 2, exp) # Eponentiate to get actual probabilities
+    post.resp <- pdf.w - apply(pdf.w,1,logSumExp) # Normalize the log probability
+    post.resp <- apply(post.resp, 2, exp) # Eponentiate to get actual probabilities
   }else{
     if (is.vector(Normal$Tau[[1]])){ # If diagonal covariance matrix
       for (k in 1:K)  # Calculate the PDF of each cluster for each data point
@@ -103,7 +103,7 @@ compute.resp <- function(X, pdf.w, K, Normal, pi.cur, logl){
         pdf.w[,k] <- pi.cur[k] * dmvnorm(X, mean=Normal$mu[[k]], 
                                          sigma=solve(Normal$Tau[[k]]))
     }
-    post.resp   <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalizarion
+    post.resp <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalizarion
   }
   return(post.resp)
 }
