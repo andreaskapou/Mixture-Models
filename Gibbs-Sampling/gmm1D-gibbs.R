@@ -5,15 +5,15 @@ gmm1D.gibbs <-  function(X, K=2, N.Sims, burnin, Normal, pi.cur, dir.a, logl=TRU
   # Normal-Gamma priors on mu and Tau, using one dimensional dataset  #
   ##===================================================================
 
-  N             <- length(X)                # Length of the dataset
-  post.resp     <- matrix(, nrow=N, ncol=K) # Posterior responsibilities
-  pdf.w         <- matrix(, nrow=N, ncol=K) # PDF of each point on each cluster k
-  C.n           <- matrix(, nrow=N, ncol=K) # Mixture components
+  N             <- length(X)                  # Length of the dataset
+  post.resp     <- matrix(0, nrow=N, ncol=K)  # Posterior responsibilities
+  pdf.w         <- matrix(0, nrow=N, ncol=K)  # PDF of each point on each cluster k
+  C.n           <- matrix(0, nrow=N, ncol=K)  # Mixture components
   x.k.bar       <- vector(length=K) # Sample mean for each cluster k 
   ssd.k         <- vector(length=K) # Sum of square differences on each cluster k
-  mu.draws      <- matrix(, nrow=N.Sims-burnin, ncol=K) # Mean of each Gaussian
-  tau.draws     <- matrix(, nrow=N.Sims-burnin, ncol=K) # Precision of each Gaussian
-  pi.draws      <- matrix(, nrow=N.Sims-burnin, ncol=K) # Mixing Proportions
+  mu.draws      <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Mean of each Gaussian
+  tau.draws     <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Precision of each Gaussian
+  pi.draws      <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Mixing Proportions
 
   for (t in 1:N.Sims){  # Start Gibbs sampling
     # Compute responsibilities
@@ -65,7 +65,7 @@ compute.resp <- function(X, pdf.w, K, Normal, pi.cur, logl){
 }
 # Update the mixture components 
 c.n.update <- function(N, K, post.resp){
-  c.i.draw <- matrix(, nrow=N, ncol=K)
+  c.i.draw <- matrix(0, nrow=N, ncol=K)
   for (i in 1:N){ # Sample one point from a multinomial i.e. ~ Discrete
     c.i.draw[i,] = rmultinom(1, 1, post.resp[i,])
     #c.i.draw[i] <- which(as.vector(rmultinom(1,1,post.resp[i,])) == TRUE)

@@ -109,7 +109,7 @@ compute.resp <- function(X, pdf.w, K, Normal, pi.cur, logl){
 }
 # Update the mixture components
 c.n.update <- function(N, K, post.resp){
-  c.i.draw <- matrix(, nrow=N, ncol=K)
+  c.i.draw <- matrix(0, nrow=N, ncol=K)
   for (i in 1:N)  # Sample one point from a multinomial i.e. ~ Discrete
     c.i.draw[i,] = rmultinom(1, 1, post.resp[i,])
   return(c.i.draw)
