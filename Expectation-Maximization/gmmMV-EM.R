@@ -7,6 +7,8 @@ setwd(cur.dir)
 require(mvtnorm)
 require(ggplot2)
 library(MASS)
+library(R.utils)
+sourceDirectory("../lib", modifiedOnly=FALSE) # Source the 'lib' directory
 
 ##====================
 # Generate the data  #

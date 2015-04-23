@@ -4,7 +4,8 @@
 ##===============================
 cur.dir <- dirname(parent.frame(2)$ofile)
 setwd(cur.dir)
-source("../readData.R")
+library(R.utils)
+sourceDirectory("../lib", modifiedOnly=FALSE) # Source the 'lib' directory
 
 ##====================
 # Generate the data  #
