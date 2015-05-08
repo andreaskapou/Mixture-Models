@@ -50,8 +50,8 @@ for (i in 1:1000){  # Loop until convergence
   for (k in 1:K){
     N.k       <- sum(post.resp[,k])     # Sum of responsibilities for cluster k
     pi.c[k]   <- N.k / N                # Update mixing proportions for cluster k
-    mu[k]     <- t(post.resp[,k]) %*% X / N.k # Update mean for cluster k
-    sigma2[k] <- (t(post.resp[,k]) %*% (X - mu[k])^2) / N.k # Update variance
+    mu[k]     <- (post.resp[,k] %*% X) / N.k # Update mean for cluster k
+    sigma2[k] <- (post.resp[,k] %*% (X - mu[k])^2) / N.k # Update variance
   }
   
   # Evaluate the log likelihood
