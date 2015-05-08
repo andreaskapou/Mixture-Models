@@ -75,20 +75,20 @@ theta[,1] <- c(-0.024, -4, -1.01)
 theta[,2] <- c(0.024, 4, -1.01)
 theta[,3] <- c(-4, 0, 0.4)
 
-X       <- gen.meth.data2(N=N, pi.c=pi.c) # Generate methylation profiles data
+X       <- gen.meth.data3(N=N, pi.c=pi.c) # Generate methylation profiles data
 
 pdf.w       <- matrix(, N, K) # Hold the PDF of each point on each cluster k
 post.resp   <- matrix(, N, K)
 log.likel   <- 0
 
-for (t in 1:10){
+for (t in 1:20){
   ## E-step
   for (k in 1:K){ # Calculate the PDF of each cluster for each data point
     for (i in 1:N){
       pdf.w[i,k] <- log(pi.c[k]) + fpr(theta=theta[,k], X[[i]])
     }
   }
-  
+  print(t)
   post.resp   <- pdf.w - apply(pdf.w, 1, logSumExp) # Normalize the log probability
   post.resp   <- apply(post.resp, 2, exp) # Exponentiate to get actual probabilities
   
@@ -98,14 +98,17 @@ for (t in 1:10){
     pi.c[k]   <- sum(post.resp[,k] / sum(post.resp))
     
     opt.theta <- optim(par=theta[,k], fn=l.theta, gr=dl.theta, X, post.resp[,k], method="CG", 
-                                                                    control = list(maxit = 10))
+                                                                    control = list(maxit = 50))
     theta[,k] <- opt.theta$par
   }
+  
+  log.likel   <- sum(log(colSums(pdf.w)))
+  print(log.likel)
 }
 
 #theta[,1] <- c(-0.024, -4, -1.01)
 #theta[,1] <- c(-4, 0, 0.4)
 #theta[,1] <- c(0.024, 4, -1.01)
 xs <- seq(-1,1,len=100) # create some values
-plot(x=xs, y=ff(theta=theta[,1], xs), type="l", xlab="x", ylab="", 
+plot(x=xs, y=ff(theta=theta[,3], xs), type="l", xlab="x", ylab="", 
      main=expression(a*x^2 + b*x + c))
