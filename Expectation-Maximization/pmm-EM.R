@@ -47,11 +47,13 @@ for (i in 1:1000){  # Loop until convergence
   for (k in 1:K){
     N.k         <- sum(post.resp[,k])     # Sum of responsibilities for cluster k
     pi.c[k]     <- N.k / N                # Update mixing proportions for cluster k
-    lambdas[k]  <- (t(post.resp[, k]) %*% X) / N.k # Update mean for cluster k
+    lambdas[k]  <- (post.resp[,k] %*% X) / N.k # Update mean for cluster k
   }
-  # Check for convergence.
+  
+  # Evaluate the log likelihood
+  # ln p(X|mu,S,p) = Sum_{n=1}^{N}(ln(Sum_{k=1}^{K}(p_k * N(x_n|mu_k, S_k))))
   logLik   <- sum(log(colSums(pdf.w)))
-  if (abs(logLik-prevLogLik) < epsilon){
+  if (abs(logLik-prevLogLik) < epsilon){ # Check for convergence.
     break
   }
   print(logLik)
@@ -63,7 +65,7 @@ for (i in 1:1000){  # Loop until convergence
 # Create x points from min(X) to max(X)
 x <- seq(from = min(X)-1, to = max(X)+1, by = 1)
 hist(X, breaks = 22, freq=FALSE, col="lightblue", xlim=c(min(X)-1,max(X)+1),
-     ylim = c(0, .15), main="Density plot of 2 Gaussians", xlab = "x")
+     ylim = c(0, .15), main=paste("Density plot of",K,"Poissons"), xlab = "x")
 
 mixture = 0.0
 for (k in 1:K){
