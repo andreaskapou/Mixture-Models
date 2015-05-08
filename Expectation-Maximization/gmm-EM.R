@@ -10,8 +10,8 @@ sourceDirectory("../lib", modifiedOnly=FALSE) # Source the 'lib' directory
 ##====================
 # Generate the data  #
 ##====================
-epsilon <- 0.00001    # Convergence paramater
-K       <- 3          # Number of clusters
+epsilon <- 1e-06    # Convergence paramater
+K       <- 3        # Number of clusters
 X       <- gen.gaussian(K=K, pi.c=c(.4,.3,.3), mus=c(10,20,30), stds=c(2,3,1))
 
 ##=========================
