@@ -10,20 +10,20 @@ sourceDirectory("../lib", modifiedOnly=FALSE) # Source the 'lib' directory
 ##====================
 # Generate the data  #
 ##====================
-epsilon <- 0.00001    # Convergence paramater
-N       <- 500        # Total number of objects to create
-K       <- 3          # Number of clusters
-r1      <- rbinom(n=N, size=40, prob=.8)  # Total number of trials
+epsilon <- 1e-06    # Convergence paramater
+N       <- 500      # Total number of objects to create
+K       <- 3        # Number of clusters
+r1      <- rbinom(n=N, size=40, prob=.9)  # Total number of trials
 r       <- matrix(r1, ncol=1)
 X       <- gen.binomial(K=3, pi.c=c(.4,.3,.3), p=c(0.2,0.7, 0.5), r=r)
 
 ##=========================
 # Initialize variables    #
 ##=========================
-N       <- length(X)              # Length of the dataset
-cl      <- kmeans(X/r, K, nstart = 25) # Use Kmeans with random starts
-C.n     <- cl$cluster             # get the mixture components
-p       <- as.vector(cl$centers)  # mean for each cluster
+N       <- length(X)                  # Length of the dataset
+cl      <- kmeans(X/r, K, nstart=25)  # Use Kmeans with random starts
+C.n     <- cl$cluster                 # get the mixture components
+p       <- as.vector(cl$centers)      # mean for each cluster
 pi.c    <- as.vector(table(C.n)/length(X)) # mixing proportions
 
 post.resp   <- matrix(, N, K)         # Hold responsibilities
