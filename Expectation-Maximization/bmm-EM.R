@@ -22,9 +22,9 @@ X       <- gen.binomial(K=3, pi.c=c(.4,.3,.3), p=c(0.2,0.7, 0.5), r=r)
 ##=========================
 N       <- length(X)                  # Length of the dataset
 cl      <- kmeans(X/r, K, nstart=25)  # Use Kmeans with random starts
-C.n     <- cl$cluster                 # get the mixture components
-p       <- as.vector(cl$centers)      # mean for each cluster
-pi.c    <- as.vector(table(C.n)/length(X)) # mixing proportions
+C.n     <- cl$cluster                 # Get the mixture components
+p       <- as.vector(cl$centers)      # Mean for each cluster
+pi.c    <- as.vector(table(C.n)/length(X)) # Mixing proportions
 
 post.resp   <- matrix(, N, K)         # Hold responsibilities
 pdf.w       <- matrix(, N, K)         # Hold PDF of each point on each cluster k
@@ -50,7 +50,7 @@ for (i in 1:1000){  # Loop until convergence
   for (k in 1:K){
     N.k       <- sum(post.resp[,k])     # Sum of responsibilities for cluster k
     pi.c[k]   <- N.k / N                # Update mixing proportions for cluster k
-    p[k]      <- t(post.resp[,k]) %*% (X/r) / N.k # Update probabilities
+    p[k]      <- post.resp[,k] %*% X / post.resp[,k] %*% r # Update probabilities
   }
   
   # Evaluate the log likelihood
