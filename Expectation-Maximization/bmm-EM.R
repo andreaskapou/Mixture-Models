@@ -26,36 +26,38 @@ C.n     <- cl$cluster             # get the mixture components
 p       <- as.vector(cl$centers)  # mean for each cluster
 pi.c    <- as.vector(table(C.n)/length(X)) # mixing proportions
 
+post.resp   <- matrix(, N, K)         # Hold responsibilities
+pdf.w       <- matrix(, N, K)         # Hold PDF of each point on each cluster k
+logLik      <- 0                      # Initialize log likelihood
+
 ##===============================
 # Run Expectation Maximization  #
 ##===============================
-# Hold responsibilities that component k takes on explaining the observation x.n
-post.resp   <- matrix(, N, K)
-log.likel   <- 0
-
 for (i in 1:1000){  # Loop until convergence
-  ##===============================================
-  ## Expectation Step
-  pdf.w       <- matrix(, N, K) # Hold the PDF of each point on each cluster k
+  prevLogLik  <- logLik               # Store to check for convergence
+  
+  ##========
+  # E-Step #
+  ##========
   for (k in 1:K){ # Calculate the PDF of each cluster for each data point
     pdf.w[,k] <- pi.c[k] * dbinom(X, size=r, prob=p[k])
   }
-  post.resp   <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalizarion
+  post.resp   <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalization
   
-  ##===============================================
-  ## Maximization Step
-  prev.log.likel <- log.likel # Store to check for convergence
+  ##========
+  # M-Step #
+  ##========
   for (k in 1:K){
-    # Update mixing proportions
-    pi.c[k]   <- sum(post.resp[, k] / sum(post.resp))
-    # Update probabilities by taking the weighted average of *all* data points.
-    val       <- t(post.resp[, k]) %*% (X/r)
-    p[k]      <- val / sum(post.resp[,k])
+    N.k       <- sum(post.resp[,k])     # Sum of responsibilities for cluster k
+    pi.c[k]   <- N.k / N                # Update mixing proportions for cluster k
+    p[k]      <- t(post.resp[,k]) %*% (X/r) / N.k # Update probabilities
   }
-  # Check for convergence.
-  log.likel   <- sum(log(sum(pdf.w)))
-  if (abs(log.likel-prev.log.likel) < epsilon){
+  
+  # Evaluate the log likelihood
+  # ln p(X|mu,S,p) = Sum_{n=1}^{N}(ln(Sum_{k=1}^{K}(p_k * N(x_n|mu_k, S_k))))
+  logLik   <- sum(log(colSums(pdf.w)))
+  if (abs(logLik-prevLogLik) < epsilon){ # Check for convergence.
     break
   }
-  print(log.likel)
+  print(logLik)
 } #End of Expectation Maximization loop.
