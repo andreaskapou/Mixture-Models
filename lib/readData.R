@@ -98,7 +98,7 @@ gen.meth.data <- function(N=300, pi.c=c(0.45, 0.35, 0.2), maxL=25, minLoc=-100, 
       }
     }else if (i < (N * pi.c[2] + N * pi.c[1])){     # Second methylation profile
       lb <- round(L/2.5)
-      mb <- round(L/5)
+      mb <- round(L/4)
       
       X[[i]][2,1:lb] <- rbinom(n=lb, size=20, prob=.9)
       repeat{
@@ -165,7 +165,7 @@ gen.meth.data2 <- function(N=300, pi.c=c(0.45, 0.35, 0.2), maxL=25, minLoc=-100,
     X[[i]][1,] <- sort(sample(minLoc:maxLoc,L))/max(abs(minLoc), abs(maxLoc))
     
     if (i < N * pi.c[1]){   # First methylation profile
-      lb <- round(L/2)
+      lb <- round(L/3)
       
       X[[i]][2,1:lb] <- rbinom(n=lb, size=20, prob=.9)
       repeat{
@@ -181,7 +181,7 @@ gen.meth.data2 <- function(N=300, pi.c=c(0.45, 0.35, 0.2), maxL=25, minLoc=-100,
           break
       }
     }else if (i < (N * pi.c[2] + N * pi.c[1])){     # Second methylation profile
-      lb <- round(L/2)
+      lb <- round(L/1.5)
       
       X[[i]][2,1:lb] <- rbinom(n=lb, size=20, prob=.9)
       repeat{
@@ -224,6 +224,83 @@ gen.meth.data2 <- function(N=300, pi.c=c(0.45, 0.35, 0.2), maxL=25, minLoc=-100,
   }
   return(X)
 }
+
+
+##===================================================
+# Generate data: Mixture of 3 methylation profiles  #
+##===================================================
+gen.meth.data3 <- function(N=300, pi.c=c(0.45, 0.35, 0.2), maxL=25, minLoc=-100, maxLoc=100){
+  # Create a list to store for each methylation region its corresponding data
+  X       <- list()
+  # For each of the N objects
+  for (i in 1:N){
+    # L is the number of Cs found in the ith region
+    L <- rbinom(n=1, size=maxL, prob=.8)
+    X[[i]] <- matrix(0, nrow=3, ncol=L)
+    # Randomly sample locations for the Cs and scale them, so the data lie in the (-1,1) region
+    X[[i]][1,] <- sort(sample(minLoc:maxLoc,L))/max(abs(minLoc), abs(maxLoc))
+    
+    if (i < N * pi.c[1]){   # First methylation profile
+      lb <- round(L/4)
+      
+      X[[i]][2,1:lb] <- rbinom(n=lb, size=20, prob=.9)
+      repeat{
+        X[[i]][3,1:lb] <- rbinom(n=lb, size=14, prob=.9)
+        if(all(X[[i]][2,1:lb] > X[[i]][3,1:lb]))
+          break
+      }
+      
+      X[[i]][2,(lb+1):L] <- rbinom(n=L-lb, size=20, prob=.9)
+      repeat{
+        X[[i]][3,(lb+1):L] <- rbinom(n=L-lb, size=2, prob=.9)
+        if (all(X[[i]][2,(lb+1):L] > X[[i]][3,(lb+1):L]))  
+          break
+      }
+    }else if (i < (N * pi.c[2] + N * pi.c[1])){     # Second methylation profile
+      lb <- round(L/1.5)
+      
+      X[[i]][2,1:lb] <- rbinom(n=lb, size=20, prob=.9)
+      repeat{
+        X[[i]][3,1:lb] <- rbinom(n=lb, size=2, prob=.8)
+        if(all(X[[i]][2,1:lb] > X[[i]][3,1:lb]))
+          break
+      }
+      
+      X[[i]][2,(lb+1):L] <- rbinom(n=L-lb, size=20, prob=.9)
+      repeat{
+        X[[i]][3,(lb+1):L] <- rbinom(n=L-lb, size=14, prob=.9)
+        if (all(X[[i]][2,(lb+1):L] > X[[i]][3,(lb+1):L]))
+          break
+      }
+    }else{                  # Third methylation profile
+      lb <- round(L/2.5)
+      mb <- round(L/3.5)
+      
+      X[[i]][2,1:lb] <- rbinom(n=lb, size=20, prob=.9)
+      repeat{
+        X[[i]][3,1:lb] <- rbinom(n=lb, size=2, prob=.9)
+        if(all(X[[i]][2,1:lb] > X[[i]][3,1:lb]))
+          break
+      }
+      
+      X[[i]][2,(lb+1):(lb+mb)] <- rbinom(n=mb, size=20, prob=.9)
+      repeat{
+        X[[i]][3,(lb+1):(lb+mb)] <- rbinom(n=mb, size=14, prob=.9)
+        if (all(X[[i]][2,(lb+1):(lb+mb)] > X[[i]][3,(lb+1):(lb+mb)]))  
+          break
+      }
+      
+      X[[i]][2,(lb+1+mb):L] <- rbinom(n=L-mb-lb, size=20, prob=.9)
+      repeat{
+        X[[i]][3,(lb+1+mb):L] <- rbinom(n=L-mb-lb, size=2, prob=.9)
+        if (all(X[[i]][2,(lb+1+mb):L] > X[[i]][3,(lb+1+mb):L]))
+          break
+      }
+    }
+  }
+  return(X)
+}
+
 
 ##=====================================
 # Read data from Old Faithful Dataset #
