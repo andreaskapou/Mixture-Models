@@ -10,51 +10,51 @@ sourceDirectory("../lib", modifiedOnly=FALSE) # Source the 'lib' directory
 ##====================
 # Generate the data  #
 ##====================
-epsilon <- 0.00001    # Convergence paramater
-K       <- 3          # Number of clusters
+epsilon <- 1e-06    # Convergence paramater
+K       <- 3        # Number of clusters
 X       <- gen.poisson(K=K, pi.c=c(.3,.2,.5), lambdas=c(5,20,50))
 
 ##=========================
 # Initialize variables    #
 ##=========================
-N       <- length(X)  # Length of the dataset
-cl      <- kmeans(X, K, nstart = 25) # Use Kmeans with random starts
-C.n     <- cl$cluster   # get the mixture components
+N       <- length(X)                  # Length of the dataset
+cl      <- kmeans(X, K, nstart = 25)  # Use Kmeans with random starts
+C.n     <- cl$cluster                 # get the mixture components
 pi.c    <- as.vector(table(C.n)/length(X)) # mixing proportions
-lambdas <- as.vector(cl$centers) # means for each Gaussian
+lambdas <- as.vector(cl$centers)      # means for each Gaussian
+
+post.resp   <- matrix(, N, K)         # Hold responsibilities
+pdf.w       <- matrix(, N, K)         # Hold PDF of each point on each cluster k
+logLik      <- 0                      # Initialize log likelihood
 
 ##===============================
 # Run Expectation Maximization  #
 ##===============================
-# Hold responsibilities that component k takes on explaining the observation x.n
-post.resp   <- matrix(, N, K)
-log.likel   <- 0
-
 for (i in 1:1000){  # Loop until convergence
-  ##===============================================
-  ## Expectation step
-  pdf.w     <- matrix(, N, K)   # Hold the PDF of each point on each cluster k
+  prevLogLik  <- logLik               # Store to check for convergence
+  
+  ##========
+  # E-Step #
+  ##========
   for (k in 1:K){ # Calculate the PDF of each cluster for each data point
     pdf.w[,k] <- pi.c[k] * dpois(X, lambda=lambdas[k])
   }
-  post.resp   <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalizarion
+  post.resp   <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalization
   
-  ##===============================================
-  ## Maximization step
-  prev.log.likel <- log.likel # Store to check for convergence
+  ##========
+  # M-Step #
+  ##========
   for (k in 1:K){
-    # Update mixing proportions
-    pi.c[k]     <- sum(post.resp[, k] / sum(post.resp))
-    # Update mean for cluster 'k' by taking the weighted average of *all* data points.
-    val         <- t(post.resp[, k]) %*% X
-    lambdas[k]  <- val / sum(post.resp[,k])
+    N.k         <- sum(post.resp[,k])     # Sum of responsibilities for cluster k
+    pi.c[k]     <- N.k / N                # Update mixing proportions for cluster k
+    lambdas[k]  <- (t(post.resp[, k]) %*% X) / N.k # Update mean for cluster k
   }
   # Check for convergence.
-  log.likel   <- sum(log(sum(pdf.w)))
-  if (abs(log.likel-prev.log.likel) < epsilon){
+  logLik   <- sum(log(colSums(pdf.w)))
+  if (abs(logLik-prevLogLik) < epsilon){
     break
   }
-  print(log.likel)
+  print(logLik)
 } #End of Expectation Maximization loop.
 
 ##=====================================
