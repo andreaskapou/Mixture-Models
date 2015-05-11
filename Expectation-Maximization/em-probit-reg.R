@@ -7,108 +7,74 @@ cur.dir <- dirname(parent.frame(2)$ofile)
 setwd(cur.dir)
 library(R.utils)
 sourceDirectory("../lib", modifiedOnly=FALSE) # Source the 'lib' directory
-set.seed(1)
-
-
-ff <- function(theta, X){
-  g   <- theta[1]*X^2 + theta[2]*X + theta[3]
-  g <- pnorm(g)
-  return(g)
-}
-
-
-l.theta <- function(theta, D, post.resp){
-  res <- 0
-  for (i in 1:length(D)){
-    res = res + fpr(theta, D[[i]]) * post.resp[i]
-  }
-  return(res)
-}
-
-dl.theta <- function(theta, D, post.resp){
-  res <- c(0,0,0)
-  for (i in 1:length(D)){
-    res = res + gpr(theta, D[[i]]) * post.resp[i]
-  }
-  return(res)
-}
-
-fpr <- function(theta, D){
-  X   <- D[1,]
-  t   <- D[2,]
-  m   <- D[3,]
-  g   <- theta[1]*X^2 + theta[2]*X + theta[3]
-  Phi <- pnorm(g)
-  res <- sum(-dbinom(x=m, size=t, prob=Phi, log=TRUE))
-  return(res)
-}
-
-gpr <- function(theta, D){
-  X   <- D[1,]
-  t   <- D[2,]
-  m   <- D[3,]
-  g   <- theta[1]*X^2 + theta[2]*X + theta[3]
-  Phi <- pnorm(g)
-  N   <- dnorm(g)
-  
-  da  <- sum(-N*X^2 * (m-t*Phi)/(Phi*(1-Phi)))
-  db  <- sum(-N*X * (m-t*Phi)/(Phi*(1-Phi)))
-  dc  <- sum(-N * (m-t*Phi)/(Phi*(1-Phi)))
-  
-  c(da, db, dc)
-}
+set.seed(4)
 
 ##====================
 # Generate the data  #
 ##====================
-epsilon <- 1e-04      # Convergence paramater
-N       <- 300        # Total number of objects to create
-K       <- 3          # Number of clusters
-pi.c    <- c(0.4, 0.3, 0.3) # Mixing proportions
-
-theta   <- matrix(0, nrow=3, ncol=K)
+epsilon     <- 1e-06            # Convergence paramater
+N           <- 400              # Total number of objects to create
+K           <- 3                # Number of clusters
+pi.c        <- c(.45, .35, .2)  # Mixing proportions
+theta       <- matrix(0, nrow=3, ncol=K) # Parameters of the 2nd order polynomial
 for (k in 1:K){
   theta[,k] <- c(0+k/100, 0+k/100, 0+k/100)
 }
+X           <- gen.meth.data3(N=N, pi.c=pi.c) # Generate methylation profiles
 
-theta[,1] <- c(-0.024, -4, -1.01)
-theta[,2] <- c(0.024, 4, -1.01)
-theta[,3] <- c(-4, 0, 0.4)
+pdf.w       <- matrix(, N, K)   # Hold the PDF of each point on each cluster k
+post.resp   <- matrix(, N, K)   # Hold responsibilities
+logLik      <- 0
 
-X       <- gen.meth.data3(N=N, pi.c=pi.c) # Generate methylation profiles data
-
-pdf.w       <- matrix(, N, K) # Hold the PDF of each point on each cluster k
-post.resp   <- matrix(, N, K)
-log.likel   <- 0
-
-for (t in 1:20){
-  ## E-step
-  for (k in 1:K){ # Calculate the PDF of each cluster for each data point
+for (t in 1:100){               # Loop until convergence
+  prevLogLik  <- logLik         # Store to check for convergence
+  
+  ##========
+  # E-Step #
+  ##========
+  for (k in 1:K){ # Calculate the weighted PDF of each cluster for each data point
     for (i in 1:N){
-      pdf.w[i,k] <- log(pi.c[k]) + fpr(theta=theta[,k], X[[i]])
+      pdf.w[i,k] <- log(pi.c[k]) + binomProbRegrLik(theta=theta[,k], D=X[[i]], mode=1)
     }
   }
-  print(t)
+  # ln p(X|mu,S,p) = Sum_{n=1}^{N}(ln(Sum_{k=1}^{K}(p_k * Bin(x_n|Phi(g)))))
+  logLik      <- sum(log(colSums(exp(pdf.w))))      # Evaluate the log likelihood
+  
   post.resp   <- pdf.w - apply(pdf.w, 1, logSumExp) # Normalize the log probability
-  post.resp   <- apply(post.resp, 2, exp) # Exponentiate to get actual probabilities
+  post.resp   <- apply(post.resp, 2, exp)           # Exponentiate to get actual probabilities
   
-  ## M-step
+  ##========
+  # M-Step #
+  ##========
   for (k in 1:K){
-    # Update mixing proportions
-    pi.c[k]   <- sum(post.resp[,k] / sum(post.resp))
+    N.k       <- sum(post.resp[,k])                 # Sum of responsibilities for cluster k
+    pi.c[k]   <- N.k / N                            # Update mixing proportions for cluster k
     
-    opt.theta <- optim(par=theta[,k], fn=l.theta, gr=dl.theta, X, post.resp[,k], method="CG", 
-                                                                    control = list(maxit = 50))
-    theta[,k] <- opt.theta$par
+    # Update the parameters a, b, c of the polynomial using Conjugate-Gradient method
+    theta[,k] <- optim(par=theta[,k],
+                       fn=sumBinomProbRegrLik,
+                       gr=sumDerBinomProbRegrLik, X, post.resp[,k],
+                       method="CG",
+                       control = list(fnscale=-1, maxit = 5) )$par
   }
-  
-  log.likel   <- sum(log(colSums(pdf.w)))
-  print(log.likel)
+  if (abs(logLik - prevLogLik) < epsilon){          # Check for convergence.
+    break
+  }
+  print(logLik)
 }
 
-#theta[,1] <- c(-0.024, -4, -1.01)
-#theta[,1] <- c(-4, 0, 0.4)
-#theta[,1] <- c(0.024, 4, -1.01)
+
+##=================================================
+# Simple function for second order polynomial     #
+# transformed through through the probit          #
+# function, and thus it is squashed to be in the  #
+# (0,1) interval                                  #
+##=================================================
+ff <- function(theta, X){
+  g   <- theta[1]*X^2 + theta[2]*X + theta[3]
+  g   <- pnorm(g)
+  return(g)
+}
 xs <- seq(-1,1,len=100) # create some values
-plot(x=xs, y=ff(theta=theta[,3], xs), type="l", xlab="x", ylab="", 
+plot(x=xs, y=ff(theta=theta[,1], xs), type="l", xlab="x", ylab="", 
      main=expression(a*x^2 + b*x + c))
