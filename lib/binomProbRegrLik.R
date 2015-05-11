@@ -1,5 +1,5 @@
 ##=======================================================================
-# binomProbRegrLik - Binomal distributed Probit Regression Likelihood   #
+# binomProbRegrLik - Binomial distributed Probit Regression Likelihood  #
 # function. The expression for the log likelihood is:                   #
 #   log L(theta;x) = Sum_{l=1}^{L}log(Bin(n_{l}, Phi(g(x_{l});theta)))  #
 #                                                                       #

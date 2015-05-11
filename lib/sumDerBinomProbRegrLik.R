@@ -1,6 +1,6 @@
 ##=======================================================================
 # sumDerBinomProbRegrLik - Sum of the derivatives wrt to the parameters #
-# of the Binomal distributed Probit Regression Likelihood over all the  #
+# of the Binomial distributed Probit Regression Likelihood over all the #
 # dataset D, weighted by the corresponding responsibilites of each      #
 # cluster. This function will be used in an Optimization procedure for  #
 # the M-step of the EM algorithm                                        #
