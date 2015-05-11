@@ -26,6 +26,7 @@ C.n     <- cl$cluster                 # Get the mixture components
 p       <- as.vector(cl$centers)      # Mean for each cluster
 pi.c    <- as.vector(table(C.n)/length(X)) # Mixing proportions
 
+isLog       <- TRUE 
 post.resp   <- matrix(, N, K)         # Hold responsibilities
 pdf.w       <- matrix(, N, K)         # Hold PDF of each point on each cluster k
 logLik      <- 0                      # Initialize log likelihood
@@ -33,30 +34,40 @@ logLik      <- 0                      # Initialize log likelihood
 ##===============================
 # Run Expectation Maximization  #
 ##===============================
-for (i in 1:1000){  # Loop until convergence
+for (i in 1:1000){                    # Loop until convergence
   prevLogLik  <- logLik               # Store to check for convergence
   
   ##========
   # E-Step #
   ##========
-  for (k in 1:K){ # Calculate the PDF of each cluster for each data point
-    pdf.w[,k] <- pi.c[k] * dbinom(X, size=r, prob=p[k])
+  if (!isLog){
+    for (k in 1:K){ # Calculate the weighted PDF of each cluster for each data point
+      pdf.w[,k] <- pi.c[k] * dbinom(X, size=r, prob=p[k])
+    }
+    post.resp   <- pdf.w / rowSums(pdf.w)             # Get responsibilites by normalization
+    
+    # ln p(X|mu,S,p) = Sum_{n=1}^{N}(ln(Sum_{k=1}^{K}(p_k * Bin(x_n|p_k))))
+    logLik   <- sum(log(colSums(pdf.w)))              # Evaluate the log likelihood
+  }else{
+    for (k in 1:K){
+      pdf.w[,k] <- log(pi.c[k]) + dbinom(X, size=r, prob=p[k], log=TRUE)
+    }
+    post.resp   <- pdf.w - apply(pdf.w, 1, logSumExp) # Normalize the log probability
+    post.resp   <- apply(post.resp, 2, exp)           # Exponentiate to get actual probabilities
+    
+    logLik   <- sum(log(colSums(exp(pdf.w))))         # Evaluate the log likelihood
   }
-  post.resp   <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalization
   
   ##========
   # M-Step #
   ##========
   for (k in 1:K){
-    N.k       <- sum(post.resp[,k])     # Sum of responsibilities for cluster k
-    pi.c[k]   <- N.k / N                # Update mixing proportions for cluster k
-    p[k]      <- post.resp[,k] %*% X / post.resp[,k] %*% r # Update probabilities
+    N.k       <- sum(post.resp[,k])                   # Sum of responsibilities for cluster k
+    pi.c[k]   <- N.k / N                              # Update mixing proportions for cluster k
+    p[k]      <- post.resp[,k]%*% X/post.resp[,k]%*%r # Update probabilities
   }
   
-  # Evaluate the log likelihood
-  # ln p(X|mu,S,p) = Sum_{n=1}^{N}(ln(Sum_{k=1}^{K}(p_k * N(x_n|mu_k, S_k))))
-  logLik   <- sum(log(colSums(pdf.w)))
-  if (abs(logLik-prevLogLik) < epsilon){ # Check for convergence.
+  if (abs(logLik - prevLogLik) < epsilon){            # Check for convergence.
     break
   }
   print(logLik)
