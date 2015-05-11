@@ -10,9 +10,9 @@ sourceDirectory("../lib", modifiedOnly=FALSE) # Source the 'lib' directory
 ##====================
 # Generate the data  #
 ##====================
-epsilon <- 1e-06    # Convergence paramater
-N       <- 500      # Total number of objects to create
-K       <- 3        # Number of clusters
+epsilon <- 1e-06  # Convergence paramater
+N       <- 500    # Total number of objects to create
+K       <- 3      # Number of clusters
 r1      <- rbinom(n=N, size=40, prob=.9)  # Total number of trials
 r       <- matrix(r1, ncol=1)
 X       <- gen.binomial(K=3, pi.c=c(.4,.3,.3), p=c(0.2,0.7, 0.5), r=r)
