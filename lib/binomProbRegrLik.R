@@ -42,10 +42,10 @@ binomProbRegrLik <- function(theta, D, mode=1){
     res <- sum(dbinom(x=m, size=t, prob=Phi, log=TRUE))
     return(res)
   }else if (mode==2){     # Compute derivatives wrt to the parameters
-    N   <- dnorm(g)
-    da  <- sum(N*X^2 * (m-t*Phi)/(Phi*(1-Phi)))
-    db  <- sum(N*X * (m-t*Phi)/(Phi*(1-Phi)))
-    dc  <- sum(N * (m-t*Phi)/(Phi*(1-Phi)))
+    N   <- dnorm(g)       # Density function of the Normal distribution
+    da  <- sum(N*X^2 * (m-t*Phi)/(Phi*(1-Phi))) # Der wrt to a parameter
+    db  <- sum(N*X * (m-t*Phi)/(Phi*(1-Phi)))   # Der wrt to b parameter
+    dc  <- sum(N * (m-t*Phi)/(Phi*(1-Phi)))     # Der wrt to a parameter
     return(c(da, db, dc))
   }
 }
