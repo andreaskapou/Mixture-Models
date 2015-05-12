@@ -8,7 +8,7 @@
 #       n     = (m, t) --> m is the number of successes in t trials     #
 #                                                                       #
 # Two modes are provided, for computing the log likelihoods and the     #
-# derivatives wrt to the parameters of the polynomials                  # 
+# derivatives wrt to the parameters of the polynomials                  #
 # and for computing the approximate predictive probability.             #
 #                                                                       #
 # Usage: y          <- binomProbRegrLik(theta, D, mode=1)               #
