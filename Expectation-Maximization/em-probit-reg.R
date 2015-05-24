@@ -6,6 +6,7 @@
 cur.dir <- dirname(parent.frame(2)$ofile)
 setwd(cur.dir)
 library(R.utils)
+library(ggplot2)
 sourceDirectory("../lib", modifiedOnly=FALSE) # Source the 'lib' directory
 set.seed(4)
 
@@ -76,5 +77,14 @@ ff <- function(theta, X){
   return(g)
 }
 xs <- seq(-1,1,len=100) # create some values
+
 plot(x=xs, y=ff(theta=theta[,1], xs), type="l", xlab="x", ylab="", 
-     main=expression(a*x^2 + b*x + c))
+     main=expression(a*x^2 + b*x + c), col="darkgreen")
+lines(x=xs, y=ff(theta=theta[,2], xs), col="red")
+lines(x=xs, y=ff(theta=theta[,3], xs), col="blue")
+
+dev.copy(png, filename="../images/probitParams.png")
+dev.off()
+
+save(theta, file="../files/probitTheta.RData")
+
