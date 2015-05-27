@@ -45,7 +45,7 @@ binomProbRegrLik <- function(theta, D, mode=1){
     N   <- dnorm(g)       # Density function of the Normal distribution
     da  <- sum(N*X^2 * (m-t*Phi)/(Phi*(1-Phi))) # Der wrt to a parameter
     db  <- sum(N*X * (m-t*Phi)/(Phi*(1-Phi)))   # Der wrt to b parameter
-    dc  <- sum(N * (m-t*Phi)/(Phi*(1-Phi)))     # Der wrt to a parameter
+    dc  <- sum(N * (m-t*Phi)/(Phi*(1-Phi)))     # Der wrt to c parameter
     return(c(da, db, dc))
   }
 }
