@@ -21,7 +21,7 @@ Normal      <- list() # Create a Normal object
 ##====================
 # Generate the data  #
 ##====================
-X <- gen.gaussian(N=N, K=K, pi.c=c(.4,.3,.3), mus=c(10,20,30), stds=c(2,3,1))
+X <- gen.gaussian(N=N, K=K, pi.c=c(.4,.3,.3), mus=c(4,8,0), stds=c(1,1,1))
 
 ##=========================
 # Initialize parameters   #
@@ -58,3 +58,8 @@ for (k in 1:K){
   mixture <- mixture + density * mean(gibbs$pi.draws[,k])
 }
 lines(x,mixture,col="red",lwd=2)
+
+plot(cumsum(gibbs$mu.draws[,1])/(1:length(gibbs$mu.draws[,1])), type="l", xlab="time", ylab="x", 
+     lwd=2, col="steelblue", ylim=c(-1,9))
+lines(cumsum(gibbs$mu.draws[,2])/(1:length(gibbs$mu.draws[,2])), lwd=2, col="orange3")
+lines(cumsum(gibbs$mu.draws[,3])/(1:length(gibbs$mu.draws[,3])), lwd=2, col="darkgreen")
