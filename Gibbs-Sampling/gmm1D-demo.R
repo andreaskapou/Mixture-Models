@@ -5,6 +5,7 @@
 cur.dir <- dirname(parent.frame(2)$ofile)
 setwd(cur.dir)
 library(MCMCpack)
+library(coda)
 library(R.utils)
 source('gmm1D-gibbs.R')
 sourceDirectory("../lib", modifiedOnly=FALSE)
@@ -14,14 +15,14 @@ sourceDirectory("../lib", modifiedOnly=FALSE)
 ##===========================
 K           <- 3      # Number of clusters
 N           <- 500    # Number of objects
-N.Sims      <- 10000  # Set the number of simulations
+N.Sims      <- 20000  # Set the number of simulations
 burnin      <- 1000   # Set how many samples should be burned in
 Normal      <- list() # Create a Normal object
 
 ##====================
 # Generate the data  #
 ##====================
-X <- gen.gaussian(N=N, K=K, pi.c=c(.4,.3,.3), mus=c(4,8,0), stds=c(1,1,1))
+X <- gen.gaussian(N=N, K=K, pi.c=c(.4,.3,.3), mus=c(0,4,8), stds=c(1,1,1))
 
 ##=========================
 # Initialize parameters   #
@@ -46,7 +47,7 @@ gibbs <- gmm1D.gibbs(X, K, N.Sims, burnin, Normal, pi.cur, dir.a, logl=logl)
 ##=====================================
 # Plot the data points and their pdfs #
 ##=====================================
-invisible(readline(prompt="Press [enter] to show the plot"))
+invisible(readline(prompt="Press [enter] to show the plots"))
 # Create x points from min(X) to max(X)
 x <- seq(from = min(X)-1, to = max(X)+1, by = 0.1)
 hist(X, breaks = 22, freq=FALSE, col="lightblue", xlim=c(min(X)-1,max(X)+1),
@@ -59,7 +60,31 @@ for (k in 1:K){
 }
 lines(x,mixture,col="red",lwd=2)
 
-plot(cumsum(gibbs$mu.draws[,1])/(1:length(gibbs$mu.draws[,1])), type="l", xlab="time", ylab="x", 
-     lwd=2, col="steelblue", ylim=c(-1,9))
+
+##===========================================
+# Example of using cumsum function to plot  #
+# the running mean of the MCMC samples.     #
+##===========================================
+plot(cumsum(gibbs$mu.draws[,1])/(1:length(gibbs$mu.draws[,1])), type="l", 
+     xlab="time", ylab="x", lwd=2, col="steelblue", ylim=c(-1,9))
 lines(cumsum(gibbs$mu.draws[,2])/(1:length(gibbs$mu.draws[,2])), lwd=2, col="orange3")
 lines(cumsum(gibbs$mu.draws[,3])/(1:length(gibbs$mu.draws[,3])), lwd=2, col="darkgreen")
+
+plot(gibbs$pi.draws[,1], type="l", xlab="time", ylab="x", lwd=2, col="steelblue", ylim=c(0.2,0.5))
+lines(gibbs$pi.draws[,2], lwd=2, col="orange3")
+lines(gibbs$pi.draws[,3], lwd=2, col="darkgreen")
+
+
+##===========================================
+# Create mcmc objects for the MCMC draws    #
+# and use the coda for plotting and in      #
+# general summary statistics                #
+##===========================================
+mu.draws <- mcmc(gibbs$mu.draws)
+plot(mu.draws)
+
+tau.draws <- mcmc(gibbs$tau.draws)
+plot(tau.draws)
+
+pi.draws <- mcmc(gibbs$pi.draws)
+plot(pi.draws)
