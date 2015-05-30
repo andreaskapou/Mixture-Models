@@ -5,6 +5,7 @@
 cur.dir <- dirname(parent.frame(2)$ofile)
 setwd(cur.dir)
 library(MCMCpack)
+library(coda)
 library(R.utils)
 source('pmm1D-gibbs.R')
 sourceDirectory("../lib", modifiedOnly=FALSE)
@@ -55,3 +56,29 @@ for (k in 1:K){
   mixture <- mixture + density * mean(gibbs$pi.draws[,k])
 }
 lines(x,mixture,col="red",lwd=2)
+
+
+##===========================================
+# Example of using cumsum function to plot  #
+# the running mean of the MCMC samples.     #
+##===========================================
+plot(cumsum(gibbs$lambda.draws[,1])/(1:length(gibbs$lambda.draws[,1])), type="l", 
+     xlab="time", ylab="x", lwd=2, col="steelblue", ylim=c(-1,9))
+lines(cumsum(gibbs$lambda.draws[,2])/(1:length(gibbs$lambda.draws[,2])), lwd=2, col="orange3")
+lines(cumsum(gibbs$lambda.draws[,3])/(1:length(gibbs$lambda.draws[,3])), lwd=2, col="darkgreen")
+
+plot(gibbs$pi.draws[,1], type="l", xlab="time", ylab="x", lwd=2, col="steelblue", ylim=c(0.1,0.6))
+lines(gibbs$pi.draws[,2], lwd=2, col="orange3")
+lines(gibbs$pi.draws[,3], lwd=2, col="darkgreen")
+
+
+##===========================================
+# Create mcmc objects for the MCMC draws    #
+# and use the coda for plotting and in      #
+# general summary statistics                #
+##===========================================
+lambda.draws <- mcmc(gibbs$lambda.draws)
+plot(lambda.draws)
+
+pi.draws <- mcmc(gibbs$pi.draws)
+plot(pi.draws)
