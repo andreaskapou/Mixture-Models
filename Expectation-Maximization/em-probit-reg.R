@@ -13,7 +13,7 @@ set.seed(4)
 ##====================
 # Generate the data  #
 ##====================
-epsilon     <- 1e-06            # Convergence paramater
+epsilon     <- 1e-04            # Convergence paramater
 N           <- 400              # Total number of objects to create
 K           <- 3                # Number of clusters
 pi.c        <- c(.45, .35, .2)  # Mixing proportions
@@ -21,7 +21,7 @@ theta       <- matrix(0, nrow=3, ncol=K) # Parameters of the 2nd order polynomia
 for (k in 1:K){
   theta[,k] <- c(0+k/100, 0+k/100, 0+k/100)
 }
-X           <- gen.meth.data3(N=N, pi.c=pi.c) # Generate methylation profiles
+X           <- gen.meth.data(N=N, pi.c=pi.c) # Generate methylation profiles
 
 pdf.w       <- matrix(, N, K)   # Hold the PDF of each point on each cluster k
 post.resp   <- matrix(, N, K)   # Hold responsibilities
@@ -76,15 +76,26 @@ ff <- function(theta, X){
   g   <- pnorm(g)
   return(g)
 }
-xs <- seq(-1,1,len=100) # create some values
+xs <- seq(-1,1,len=2000) # create some values
 
 plot(x=xs, y=ff(theta=theta[,1], xs), type="l", xlab="x", ylab="", 
      main=expression(a*x^2 + b*x + c), col="darkgreen")
 lines(x=xs, y=ff(theta=theta[,2], xs), col="red")
 lines(x=xs, y=ff(theta=theta[,3], xs), col="blue")
 
-dev.copy(png, filename="../images/probitParams.png")
+dev.copy(png, filename=paste("../images/probitParams", format(Sys.time(), "%a%b%d%H%M"),".png", sep=""))
 dev.off()
 
-save(theta, file="../files/probitTheta.RData")
+save(theta, file=paste("../files/probitTheta", format(Sys.time(), "%a%b%d%H%M"),".RData", sep=""))
+
+
+plot(X[[7]][1,], X[[7]][3,]/X[[7]][2,], col="darkgreen", pch=24, xlim=c(-1,1), ylim=c(0.05,0.92),
+     xlab="region x", ylab="methylation level")
+lines(x=xs, y=ff(theta=theta[,1], xs), col="darkgreen", lwd=2)
+points(X[[245]][1,], X[[245]][3,]/X[[245]][2,], pch=23, col="red")
+lines(x=xs, y=ff(theta=theta[,3], xs), col="red", lwd=2)
+points(X[[390]][1,], X[[390]][3,]/X[[390]][2,], pch=8, col="blue")
+lines(x=xs, y=ff(theta=theta[,2], xs), col="blue", lwd=2)
+
+
 
