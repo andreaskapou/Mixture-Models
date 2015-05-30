@@ -116,7 +116,7 @@ gen.meth.data <- function(N=300, pi.c=c(0.45, 0.35, 0.2), maxL=25, minLoc=-100, 
       
       X[[i]][2,(lb+1+mb):L] <- rbinom(n=L-mb-lb, size=20, prob=.9)
       repeat{
-        X[[i]][3,(lb+1+mb):L] <- rbinom(n=L-mb-lb, size=18, prob=.9)
+        X[[i]][3,(lb+1+mb):L] <- rbinom(n=L-mb-lb, size=14, prob=.9)
         if (all(X[[i]][2,(lb+1+mb):L] > X[[i]][3,(lb+1+mb):L]))
           break
       }
