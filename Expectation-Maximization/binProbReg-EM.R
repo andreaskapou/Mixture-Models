@@ -96,6 +96,3 @@ points(X[[245]][1,], X[[245]][3,]/X[[245]][2,], pch=23, col="red")
 lines(x=xs, y=ff(theta=theta[,3], xs), col="red", lwd=2)
 points(X[[390]][1,], X[[390]][3,]/X[[390]][2,], pch=8, col="blue")
 lines(x=xs, y=ff(theta=theta[,2], xs), col="blue", lwd=2)
-
-
-
