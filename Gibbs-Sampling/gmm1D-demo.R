@@ -15,14 +15,14 @@ sourceDirectory("../lib", modifiedOnly=FALSE)
 ##===========================
 K           <- 3      # Number of clusters
 N           <- 500    # Number of objects
-N.Sims      <- 20000  # Set the number of simulations
+N.Sims      <- 10000  # Set the number of simulations
 burnin      <- 1000   # Set how many samples should be burned in
 Normal      <- list() # Create a Normal object
 
 ##====================
 # Generate the data  #
 ##====================
-X <- gen.gaussian(N=N, K=K, pi.c=c(.4,.3,.3), mus=c(0,4,8), stds=c(1,1,1))
+X <- gen.gaussian(N=N, K=K, pi.c=c(.4,.3,.3), mus=c(0,6,12), stds=c(1,1,1))
 
 ##=========================
 # Initialize parameters   #
@@ -88,3 +88,12 @@ plot(tau.draws)
 
 pi.draws <- mcmc(gibbs$pi.draws)
 plot(pi.draws)
+
+#chainmu4 <- mu.draws
+#chaintau4 <- tau.draws
+#chainpi4 <- pi.draws
+
+#combinedchains = mcmc.list(chainmu1, chainmu2, chainmu3, chainmu4)
+#plot(combinedchains)
+#gelman.diag(combinedchains)
+#gelman.plot(combinedchains)
