@@ -83,16 +83,27 @@ plot(x=xs, y=ff(theta=theta[,1], xs), type="l", xlab="x", ylab="",
 lines(x=xs, y=ff(theta=theta[,2], xs), col="red")
 lines(x=xs, y=ff(theta=theta[,3], xs), col="blue")
 
-dev.copy(png, filename=paste("../images/probitParams", format(Sys.time(), "%a%b%d%H%M"),".png", sep=""))
-dev.off()
 
-save(theta, file=paste("../files/probitTheta", format(Sys.time(), "%a%b%d%H%M"),".RData", sep=""))
-
+par(xpd=T, mar=par()$mar+c(0,0,0,4))
+# Add extra space to right of plot area; change clipping to figure
+#par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
 
 plot(X[[7]][1,], X[[7]][3,]/X[[7]][2,], col="darkgreen", pch=24, xlim=c(-1,1), ylim=c(0.05,0.92),
      xlab="region x", ylab="methylation level")
 lines(x=xs, y=ff(theta=theta[,1], xs), col="darkgreen", lwd=2)
 points(X[[245]][1,], X[[245]][3,]/X[[245]][2,], pch=23, col="red")
 lines(x=xs, y=ff(theta=theta[,3], xs), col="red", lwd=2)
-points(X[[390]][1,], X[[390]][3,]/X[[390]][2,], pch=8, col="blue")
-lines(x=xs, y=ff(theta=theta[,2], xs), col="blue", lwd=2)
+points(X[[390]][1,], X[[390]][3,]/X[[390]][2,], pch=8, col="darkblue")
+lines(x=xs, y=ff(theta=theta[,2], xs), col="darkblue", lwd=2)
+
+# Add legend to top right, outside plot region
+legend("right", inset=c(-0.1,0), legend=c("1","2", "3"), pch=c(24,23,8), 
+       col=c("darkgreen", "red", "darkblue"), title="Cluster")
+
+
+#legend(locator(1),c("Cluster", "group B"), pch = c(1,2), lty = c(1,2))
+
+dev.copy(png, width = 800, height = 600, filename=paste("../images/probitParams", format(Sys.time(), "%a%b%d%H%M"),".png", sep=""))
+dev.off()
+
+#save(theta, file=paste("../files/probitTheta", format(Sys.time(), "%a%b%d%H%M"),".RData", sep=""))
