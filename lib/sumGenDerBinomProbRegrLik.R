@@ -25,7 +25,7 @@
 #                                                                       #
 ##=======================================================================
 sumGenDerBinomProbRegrLik <- function(theta, D, post.resp){
-  res <- c(0,0,0,0)
+  res <- c(0,0,0,0,0)
   for (i in 1:length(D)){
     res = res + genBinomProbRegrLik(theta, D[[i]], mode=2) * post.resp[i]
   }
