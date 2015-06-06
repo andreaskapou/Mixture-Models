@@ -21,7 +21,7 @@ gmm.EM <- function(X, K=2, theta, epsilon=1e-10, maxIter=1000, isLog=TRUE, isDeb
     cl      <- kmeans(X, K, nstart = 25)        # Use Kmeans with random starts
     C.n     <- cl$cluster                       # Get the mixture components
     mu      <- as.vector(cl$centers)            # Mean for each cluster
-    pi.c    <- as.vector(table(C.n)/length(X))  # Mixing proportions
+    pi.c    <- as.vector(table(C.n)/NROW(X))    # Mixing proportions
     s2      <- vector(length=K)                 # Variance for each cluster
     for (k in 1:K){
       s2[k] <- var(X[C.n==k])
@@ -52,7 +52,7 @@ gmm.EM <- function(X, K=2, theta, epsilon=1e-10, maxIter=1000, isLog=TRUE, isDeb
     ##===================
     if (!isLog){
       # Calculate weighted PDF of each cluster for each data point
-      for (k in 1:K){ 
+      for (k in 1:K){
         pdf.w[,k] <- pi.c[k] * dnorm(X, mean=mu[k], sd=sqrt(s2[k]))
       }
       Z           <- rowSums(pdf.w)             # Normalization constant
