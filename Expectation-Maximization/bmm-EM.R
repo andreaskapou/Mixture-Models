@@ -47,7 +47,7 @@ for (i in 1:1000){                    # Loop until convergence
     post.resp   <- pdf.w / rowSums(pdf.w)             # Get responsibilites by normalization
     
     # ln p(X|mu,S,p) = Sum_{n=1}^{N}(ln(Sum_{k=1}^{K}(p_k * Bin(x_n|p_k))))
-    logLik   <- sum(log(colSums(pdf.w)))              # Evaluate the log likelihood
+    logLik   <- sum(log(rowSums(pdf.w)))              # Evaluate the log likelihood
   }else{
     for (k in 1:K){
       pdf.w[,k] <- log(pi.c[k]) + dbinom(X, size=r, prob=p[k], log=TRUE)
@@ -55,7 +55,7 @@ for (i in 1:1000){                    # Loop until convergence
     post.resp   <- pdf.w - apply(pdf.w, 1, logSumExp) # Normalize the log probability
     post.resp   <- apply(post.resp, 2, exp)           # Exponentiate to get actual probabilities
     
-    logLik   <- sum(log(colSums(exp(pdf.w))))         # Evaluate the log likelihood
+    logLik   <- sum(log(rowSums(exp(pdf.w))))         # Evaluate the log likelihood
   }
   
   ##========
