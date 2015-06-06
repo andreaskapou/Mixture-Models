@@ -10,19 +10,20 @@ library(R.utils)
 source('gmm1D-gibbs.R')
 sourceDirectory("../lib", modifiedOnly=FALSE)
 
+set.seed(1)
 ##===========================
 # Initialize main variables #
 ##===========================
 K           <- 3      # Number of clusters
 N           <- 500    # Number of objects
 N.Sims      <- 10000  # Set the number of simulations
-burnin      <- 1000   # Set how many samples should be burned in
+burnin      <- 5000   # Set how many samples should be burned in
 Normal      <- list() # Create a Normal object
 
 ##====================
 # Generate the data  #
 ##====================
-X <- gen.gaussian(N=N, K=K, pi.c=c(.4,.3,.3), mus=c(0,6,12), stds=c(1,1,1))
+X <- gen.gaussian(N=N, K=K, pi.c=c(.4,.3,.3), mus=c(0,2,5), stds=c(1,1,1))
 
 ##=========================
 # Initialize parameters   #
@@ -35,7 +36,7 @@ Normal$mu       <- as.vector(cl$centers)        # Normal mean for each cluster
 for (k in 1:K){
   Normal$Tau[k] <- 1/var(X[C.n==k])             # Normal precision for each cluster
 }
-Normal$Norm     <- list(mu.0=0, tau.0=1/100)    # Normal hyperparameters
+Normal$Norm     <- list(mu.0=mean(X), tau.0=1/sd(X))  # Normal hyperparameters
 Normal$Gamma    <- list(a=1, b=1)               # Gamma hyperparameters
 logl            <- TRUE                         # If we want to compute log likel
 
