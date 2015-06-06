@@ -39,7 +39,7 @@ genBinomProbRegrLik <- function(theta, D, mode=1){
   
   #deg <- length(theta)
   
-  g   <- theta[1]*X^3 + theta[2]*X^2 + theta[3]*X + theta[4]
+  g   <- theta[1]*X^4 + theta[2]*X^3 + theta[3]*X^2 + theta[4] * X + theta[5]
   Phi <- pnorm(g)         # Squash the function g() to the (0,1) interval
   
   if (mode==1){           # Compute the log likelihood
@@ -47,10 +47,11 @@ genBinomProbRegrLik <- function(theta, D, mode=1){
     return(res)
   }else if (mode==2){     # Compute derivatives wrt to the parameters
     N   <- dnorm(g)       # Density function of the Normal distribution
+    df  <- sum(N*X^4 * (m-t*Phi)/(Phi*(1-Phi))) # Der wrt to a parameter
     da  <- sum(N*X^3 * (m-t*Phi)/(Phi*(1-Phi))) # Der wrt to a parameter
     db  <- sum(N*X^2 * (m-t*Phi)/(Phi*(1-Phi))) # Der wrt to b parameter
     dc  <- sum(N*X * (m-t*Phi)/(Phi*(1-Phi)))   # Der wrt to c parameter
     dd  <- sum(N * (m-t*Phi)/(Phi*(1-Phi)))     # Der wrt to d parameter
-    return(c(da, db, dc, dd))
+    return(c(df, da, db, dc, dd))
   }
 }
