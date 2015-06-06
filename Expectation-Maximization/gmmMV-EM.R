@@ -1,88 +1,107 @@
-##===============================
-# Set the working directory and #
-# load any required libraries   #
-##===============================
-cur.dir <- dirname(parent.frame(2)$ofile)
-setwd(cur.dir)
-require(mvtnorm)
-require(ggplot2)
-library(MASS)
-library(R.utils)
-sourceDirectory("../lib", modifiedOnly=FALSE) # Source the 'lib' directory
+#' Performs EM algorithm for univariate Gaussian Mixture Models (GMMs).
+#' 
+#' Notation and algorithm follows Bishop's book Ch.9, "Pattern Recognition 
+#' and Machina Learning". BUT, it computes the Negative Log Likelihood (NLL):
+#' - ln p(X|mu,S,p) = - Sum_{N}(ln(Sum_{K}(p_k * N(x_n|mu_k, S_k))))
+#' 
+#' This method works in different modes, depending on the parameters given. 
+#' If no 'theta' parameter is given, then it initializes the parameters using
+#' 'kmeans' algorithm. 
 
-##====================
-# Generate the data  #
-##====================
-epsilon <- 0.00001    # Convergence paramater
-X       <- as.matrix(faithful)
-K       <- 2          # Number of clusters
-
-##=========================
-# Initialize variables    #
-##=========================
-N       <- nrow(X)                    # Length of the dataset
-cl      <- kmeans(X, K, nstart = 25)  # Use Kmeans with random starts
-C.n     <- cl$cluster                 # get the mixture components
-pi.c    <- as.vector(table(C.n)/NROW(X)) # mixing proportions
-mu      <- cl$centers                 # means for each Gaussian
-Sigma   <- list(length=K)             # Covariance matrix for each Gaussian
-for (k in 1:K){
-  Sigma[[k]]  <- cov(X[C.n==k,])
+gmmMV.EM <- function(X, K=2, theta, epsilon=1e-10, maxIter=1000, isLog=TRUE, isDebug=FALSE){
+  
+  N         <- NROW(X)                          # Length of the dataset
+  post.resp <- matrix(0, nrow=N, ncol=K)        # Hold responsibilities
+  pdf.w     <- matrix(0, nrow=N, ncol=K)        # Hold weighted PDFs
+  all.NLL   <- vector(mode="numeric")           # Hold NLL for all EM iterations
+  NLL       <- 1e+40                            # Initialize Negative Log Likelihood
+  
+  # If 'theta' parameter is empty, we initialize parameters using 'kmeans'
+  if (missing(theta)){
+    cl      <- kmeans(X, K, nstart = 25)        # Use Kmeans with random starts
+    C.n     <- cl$cluster                       # Get the mixture components
+    mu      <- cl$centers                       # Mean for each cluster
+    pi.c    <- as.vector(table(C.n)/NROW(X))    # Mixing proportions
+    Sigma   <- list(length=K)                   # Variance for each cluster
+    for (k in 1:K){
+      Sigma[[k]]  <- cov(X[C.n==k,])
+    }
+  }else{
+    mu      <- theta$mu                         # Mean for each cluster
+    Sigma   <- theta$Sigma                      # Variance for each cluster
+    pi.c    <- theta$pi.c                       # Mixing proportions
+  }
+  
+  if (isDebug){
+    cat("Initial values:\n")
+    cat("Mean:", mu, "\n")
+    cat("Mixing proportions:", pi.c, "\n")
+    
+    cat("Initial NLL:", NLL, "\n")
+  }
+  
+  ##=========================================
+  # Run Expectation Maximization  algorithm #
+  ##=========================================
+  for (i in 1:maxIter){                         # Loop until convergence
+    prevNLL  <- NLL                             # Store NLL to check for convergence
+    
+    ##===================
+    #       E-Step      #
+    ##===================
+    if (!isLog){
+      # Calculate weighted PDF of each cluster for each data point
+      for (k in 1:K){
+        pdf.w[,k] <- pi.c[k] * mvtnorm::dmvnorm(X, mean=mu[k,], sigma=Sigma[[k]], log=F)
+      }
+      Z           <- rowSums(pdf.w)             # Normalization constant
+      post.resp   <- pdf.w / Z                  # Get responsibilites by normalization
+      NLL         <- -sum(log(Z))               # Evaluate the NLL
+    }else{
+      for (k in 1:K){
+        pdf.w[,k] <- log(pi.c[k]) + mvtnorm::dmvnorm(X, mean=mu[k,], sigma=Sigma[[k]], log=T)
+      }
+      # Calculate probabilities using the logSumExp trick for numerical stability
+      Z           <- apply(pdf.w, 1, logSumExp)
+      post.resp   <- pdf.w - Z
+      post.resp   <- apply(post.resp, 2, exp)   # Exponentiate to get actual probabilities
+      NLL         <- -sum(Z)                    # Evaluate the NLL
+    }
+    
+    ##===================
+    #       M-Step      #
+    ##===================
+    N.k   <- colSums(post.resp)                 # Sum of responsibilities for each cluster
+    pi.c  <- N.k / N                            # Update mixing proportions for each cluster
+    for (k in 1:K){
+      mu[k,]     <- (t(post.resp[,k]) %*% X) / sum(post.resp[,k]) # Update mu
+      X.cen <- sweep(X, MARGIN=2, mu[k,], FUN="-") # Update Sigma
+      Sigma[[k]] <- t(X.cen) %*% (X.cen * post.resp[,k]) / sum(post.resp[,k])
+    }
+    
+    
+    if (isDebug){
+      cat("i:", i, "\n")
+      cat("NLL:", NLL, "\n")
+    }
+    
+    NLL.Diff  <- prevNLL - NLL                  # Compute NLL difference after ith iteration
+    if (NLL.Diff < 0){
+      stop("Negative log likelihood increases - Something is wrong!")
+    }
+    
+    all.NLL   <- c(all.NLL, NLL)                # Keep all NLL in a vector  
+    if (NLL.Diff < epsilon){                    # Check for convergence.
+      break
+    }
+    
+  } #End of Expectation Maximization loop.
+  
+  message("Total iterations: ", i, "\n")
+  if (i == maxIter){
+    message("Warning: EM did not converge with given maximum iterations!\n\n")
+  }
+  
+  return(list(mu=mu, Sigma=Sigma, pi.c=pi.c, NLL=NLL, post.resp=post.resp, all.NLL=all.NLL))
 }
-post.resp   <- matrix(, N, K)         # Hold responsibilities
-pdf.w       <- matrix(, N, K)         # Hold PDF of each point on each cluster k
-logLik      <- 0                      # Initialize log likelihood
 
-##===============================
-# Run Expectation Maximization  #
-##===============================
-for (i in 1:1000){  # Loop until convergence
-  prevLogLik  <- logLik               # Store to check for convergence
-  
-  ##========
-  # E-Step #
-  ##========
-  for (k in 1:K){ # Calculate the PDF of each cluster for each data point
-    pdf.w[,k] <- pi.c[k] * dmvnorm(X, mean=mu[k,], sigma=Sigma[[k]], log=F)
-  }
-  post.resp <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalizarion
-  
-  ##========
-  # M-Step #
-  ##========
-  for (k in 1:K){
-    N.k       <- sum(post.resp[,k])     # Sum of responsibilities for cluster k
-    pi.c[k]   <- N.k / N                # Update mixing proportions for cluster k
-    mu[k,]     <- (t(post.resp[,k]) %*% X) / sum(post.resp[,k]) # Update mu
-    X.cen <- sweep(X, MARGIN=2, mu[k,], FUN="-") # Update Sigma
-    Sigma[[k]] <- t(X.cen) %*% (X.cen * post.resp[,k]) / sum(post.resp[,k])
-  }
-  
-  # Evaluate the log likelihood
-  # ln p(X|mu,S,p) = Sum_{n=1}^{N}(ln(Sum_{k=1}^{K}(p_k * N(x_n|mu_k, S_k))))
-  logLik   <- sum(log(colSums(pdf.w)))
-  if (abs(logLik-prevLogLik) < epsilon){ # Check for convergence.
-    break
-  }
-  print(logLik)
-} #End of Expectation Maximization loop.
-
-##=====================================
-# Plot the data points and their pdfs #
-##=====================================
-# Points to estimate the density and plot the contours
-xpts <- seq(from=min(X[,1])-1,to=max(X[,1])+1,length.out=100)
-ypts <- seq(from=min(X[,2])-1,to=max(X[,2])+2,length.out=100)
-
-# Estimate the mixture contours
-mixture.contour <- outer(xpts,ypts,function(x,y) {
-  mixture <- matrix(data=0, length(xpts)*length(ypts), 1)
-  for(k in 1:K){
-    mixture <- mixture + pi.c[k]*dmvnorm(cbind(x,y),mean=mu[k,],sigma=Sigma[[k]])
-  }
-  return(mixture)
-  })
-contour(xpts,ypts,mixture.contour,nlevels=10,drawlabel=FALSE,col="red",
-        xlab="Eruption time",ylab="Waiting time",
-        main="Waiting vs Eruption time - Old Faithful")
-points(faithful)
