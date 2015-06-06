@@ -19,6 +19,7 @@ set.seed(12345)         # Set seed for reproducible results
 ##=============================================
 # Generate the data  and initialize variables #
 ##=============================================
+N       <- 500          # Number of data points
 K       <- 3            # Number of clusters
 X       <- gen.gaussian(K=K, pi.c=c(.4,.3,.3), mus=c(-1,3,6), stds=c(1,1.1,1.2))
 
@@ -33,7 +34,7 @@ pi.c    <- rep(1/K, K)  # Initialize mixing proportions for each cluster
 theta   <- list(mu=mu, s2=s2, pi.c=pi.c) # Wrap all the parameters in a list
 
 ##===================================================
-# Run EM-GMM, explicitly giving initial parameters  #
+# Run GMM-EM, explicitly giving initial parameters  #
 ##===================================================
 fit.gmm <- gmm.EM(X=X, 
                   K=K, 
@@ -75,21 +76,21 @@ gm <- normalmixEM(X,
                   mu=mu, 
                   sigma=sqrt(s2))
 
-cat("\n\nMy EM-GMM with given parameters:\n")
+cat("\n\nMy GMM-EM (with given parameters):\n")
 cat("Total iterations:", length(fit.gmm$all.NLL), "\n")
 cat("Mean:", fit.gmm$mu, "\n")
 cat("Variance:", fit.gmm$s2, "\n")
 cat("Mixing proportions:", fit.gmm$pi.c, "\n")
 cat("Best NLL:", fit.gmm$NLL, "\n\n")
 
-cat("My EM-GMM parameters initialized by k-means:\n")
+cat("My GMM-EM (with parameters initialized by k-means):\n")
 cat("Total iterations:", length(fit.gmm.kmeans$all.NLL), "\n")
 cat("Mean:", fit.gmm.kmeans$mu, "\n")
 cat("Variance:", fit.gmm.kmeans$s2, "\n")
 cat("Mixing proportions:", fit.gmm.kmeans$pi.c, "\n")
 cat("Best NLL:", fit.gmm.kmeans$NLL, "\n\n")
 
-cat("Mixtools package EM-GMM:\n")
+cat("Mixtools package GMM-EM:\n")
 cat("Total iterations:", length(gm$all.loglik),"\n")
 cat("Mean:", gm$mu, "\n")
 cat("Variance:", gm$sigma, "\n")
