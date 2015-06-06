@@ -39,7 +39,7 @@ for (t in 1:100){               # Loop until convergence
     }
   }
   # ln p(X|mu,S,p) = Sum_{n=1}^{N}(ln(Sum_{k=1}^{K}(p_k * Bin(x_n|Phi(g)))))
-  logLik      <- sum(log(colSums(exp(pdf.w))))      # Evaluate the log likelihood
+  logLik      <- sum(log(rowSums(exp(pdf.w))))      # Evaluate the log likelihood
   
   post.resp   <- pdf.w - apply(pdf.w, 1, logSumExp) # Normalize the log probability
   post.resp   <- apply(post.resp, 2, exp)           # Exponentiate to get actual probabilities
