@@ -20,7 +20,7 @@ N       <- 500          # Number of data points
 K       <- 3            # Number of clusters
 r1      <- rbinom(n=N, size=40, prob=.9)  # Total number of trials
 r       <- matrix(r1, ncol=1)
-X       <- gen.binomial(K=3, pi.c=c(.4,.3,.3), p=c(0.2,0.7, 0.5), r=r)
+X       <- gen.binomial(N=N, K=3, pi.c=c(.4,.3,.3), p=c(0.2,0.7, 0.5), r=r)
 
 epsilon <- 1e-10        # Convergence paramater for EM
 maxIter <- 1000         # Maximum number of iterations for EM
@@ -42,3 +42,9 @@ fit.bmm <- bmm.EM(X=X,
                   maxIter=maxIter, 
                   isLog=TRUE, 
                   isDebug=FALSE)
+
+##===================================================
+# Run GMM-EM, without initial parameters, then the  #
+# method will initilize parameters using k-means    #
+##===================================================
+fit.bmm.kmeans <- bmm.EM(X=X, r=r, K=K)
