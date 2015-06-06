@@ -11,6 +11,7 @@
 ##=============================================================
 cur.dir <- dirname(parent.frame(2)$ofile)
 setwd(cur.dir)
+source("gmm-EM.R")
 library(R.utils)
 sourceDirectory("../lib", modifiedOnly=FALSE) # Source the 'lib' directory
 set.seed(12345)         # Set seed for reproducible results
