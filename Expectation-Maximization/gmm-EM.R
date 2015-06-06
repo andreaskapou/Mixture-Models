@@ -10,6 +10,7 @@
 
 gmm.EM <- function(X, K=2, theta, epsilon=1e-10, maxIter=1000, isLog=TRUE, isDebug=FALSE){
   
+  N         <- length(X)                        # Length of the dataset
   post.resp <- matrix(0, nrow=N, ncol=K)        # Hold responsibilities
   pdf.w     <- matrix(0, nrow=N, ncol=K)        # Hold weighted PDFs
   all.NLL   <- vector(mode="numeric")           # Hold NLL for all EM iterations
@@ -17,7 +18,6 @@ gmm.EM <- function(X, K=2, theta, epsilon=1e-10, maxIter=1000, isLog=TRUE, isDeb
   
   # If 'theta' parameter is empty, we initialize parameters using 'kmeans'
   if (missing(theta)){
-    N       <- length(X)                        # Length of the dataset
     cl      <- kmeans(X, K, nstart = 25)        # Use Kmeans with random starts
     C.n     <- cl$cluster                       # Get the mixture components
     mu      <- as.vector(cl$centers)            # Mean for each cluster
@@ -53,14 +53,14 @@ gmm.EM <- function(X, K=2, theta, epsilon=1e-10, maxIter=1000, isLog=TRUE, isDeb
     if (!isLog){
       # Calculate weighted PDF of each cluster for each data point
       for (k in 1:K){ 
-        pdf.w[,k] <- pi.c[k] * dnorm(X, mean=mu[k], sd=sqrt(sigma2[k]))
+        pdf.w[,k] <- pi.c[k] * dnorm(X, mean=mu[k], sd=sqrt(s2[k]))
       }
       Z           <- rowSums(pdf.w)             # Normalization constant
       post.resp   <- pdf.w / Z                  # Get responsibilites by normalization
       NLL         <- -sum(log(Z))               # Evaluate the NLL
     }else{
       for (k in 1:K){
-        pdf.w[,k] <- log(pi.c[k]) + dnorm(X, mean=mu[k], sd=sqrt(sigma2[k]), log=TRUE)
+        pdf.w[,k] <- log(pi.c[k]) + dnorm(X, mean=mu[k], sd=sqrt(s2[k]), log=TRUE)
       }
       # Calculate probabilities using the logSumExp trick for numerical stability
       Z           <- apply(pdf.w, 1, logSumExp)
