@@ -7,12 +7,15 @@ setwd(cur.dir)
 library(R.utils)
 sourceDirectory("../lib", modifiedOnly=FALSE) # Source the 'lib' directory
 
+set.seed(1)
 ##====================
 # Generate the data  #
 ##====================
 epsilon <- 1e-06    # Convergence paramater
 K       <- 3        # Number of clusters
-X       <- gen.gaussian(K=K, pi.c=c(.4,.3,.3), mus=c(10,20,30), stds=c(2,3,1))
+X       <- gen.gaussian(K=K, pi.c=c(.4,.3,.3), mus=c(0,2,5), stds=c(1,1,1))
+
+#gm<-normalmixEM(X,k=K,lambda=pi.c,mu=mu,sigma=sigma2)
 
 ##=========================
 # Initialize variables    #
@@ -26,7 +29,7 @@ sigma2  <- vector(length=K)           # Variance for each Gaussian
 for (k in 1:K){
   sigma2[k] <- var(X[C.n==k])
 }
-isLog       <- TRUE 
+isLog       <- FALSE
 post.resp   <- matrix(, N, K)         # Hold responsibilities
 pdf.w       <- matrix(, N, K)         # Hold PDF of each point on each cluster k
 logLik      <- 0                      # Initialize log likelihood
@@ -34,7 +37,7 @@ logLik      <- 0                      # Initialize log likelihood
 ##===============================
 # Run Expectation Maximization  #
 ##===============================
-for (i in 1:1000){                    # Loop until convergence
+for (i in 1:100){                    # Loop until convergence
   prevLogLik  <- logLik               # Store to check for convergence
   
   ##========
@@ -61,12 +64,16 @@ for (i in 1:1000){                    # Loop until convergence
   ##========
   # M-Step #
   ##========
-  for (k in 1:K){
-    N.k       <- sum(post.resp[,k])                   # Sum of responsibilities for cluster k
-    pi.c[k]   <- N.k / N                              # Update mixing proportions for cluster k
-    mu[k]     <- (post.resp[,k] %*% X) / N.k          # Update mean for cluster k
-    sigma2[k] <- (post.resp[,k] %*% (X-mu[k])^2)/N.k  # Update variance
-  }
+  N.k <- colSums(post.resp)                           # Sum of responsibilities for each cluster
+  pi.c <- N.k / N                                     # Update mixing proportions for each cluster
+  mu <- (t(X) %*% post.resp) / N.k                    # Update mean for each cluster
+  sigma2 <- (t(X^2) %*% post.resp) / N.k - mu^2       # Update variance
+  #for (k in 1:K){
+  #  N.k       <- sum(post.resp[,k])                   
+  #  pi.c[k]   <- N.k / N                              
+  #  mu[k]     <- (post.resp[,k] %*% X) / N.k          
+  #  sigma2[k] <- (post.resp[,k] %*% (X-mu[k])^2)/N.k
+  #}
   
   if (abs(logLik - prevLogLik) < epsilon){            # Check for convergence.
     break
