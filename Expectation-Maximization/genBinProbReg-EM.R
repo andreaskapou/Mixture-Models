@@ -8,7 +8,6 @@ setwd(cur.dir)
 library(R.utils)
 library(ggplot2)
 sourceDirectory("../lib", modifiedOnly=FALSE) # Source the 'lib' directory
-set.seed(4)
 
 ##====================
 # Generate the data  #
@@ -17,9 +16,9 @@ epsilon     <- 1e-04            # Convergence paramater
 N           <- 400              # Total number of objects to create
 K           <- 3                # Number of clusters
 pi.c        <- c(.45, .35, .2)  # Mixing proportions
-theta       <- matrix(0, nrow=4, ncol=K) # Parameters of the 2nd order polynomial
+theta       <- matrix(0, nrow=5, ncol=K) # Parameters of the 2nd order polynomial
 for (k in 1:K){
-  theta[,k] <- c(0+k/100, 0+k/100, 0+k/100, 0+k/100)
+  theta[,k] <- c(0+k/100, 0+k/100, 0+k/100, 0+k/100, 0+k/100)
 }
 X           <- gen.meth.data(N=N, pi.c=pi.c) # Generate methylation profiles
 
@@ -39,7 +38,7 @@ for (t in 1:100){               # Loop until convergence
     }
   }
   # ln p(X|mu,S,p) = Sum_{n=1}^{N}(ln(Sum_{k=1}^{K}(p_k * Bin(x_n|Phi(g)))))
-  logLik      <- sum(log(colSums(exp(pdf.w))))      # Evaluate the log likelihood
+  logLik      <- sum(log(rowSums(exp(pdf.w))))      # Evaluate the log likelihood
   
   post.resp   <- pdf.w - apply(pdf.w, 1, logSumExp) # Normalize the log probability
   post.resp   <- apply(post.resp, 2, exp)           # Exponentiate to get actual probabilities
@@ -72,7 +71,7 @@ for (t in 1:100){               # Loop until convergence
 # (0,1) interval                                  #
 ##=================================================
 ff <- function(theta, X){
-  g   <- theta[1]*X^3 + theta[2]*X^2 + theta[3]*X + theta[4]
+  g   <- theta[1]*X^4 + theta[2]*X^3 + theta[3]*X^2 + theta[4] * X + theta[5]
   g   <- pnorm(g)
   return(g)
 }
