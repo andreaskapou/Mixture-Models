@@ -21,7 +21,7 @@ set.seed(12345)         # Set seed for reproducible results
 ##=============================================
 N       <- 500          # Number of data points
 K       <- 3            # Number of clusters
-X       <- gen.gaussian(K=K, pi.c=c(.4,.3,.3), mus=c(-1,3,6), stds=c(1,1.1,1.2))
+X       <- gen.gaussian(N=N, K=K, pi.c=c(.4,.3,.3), mus=c(-1,3,6), stds=c(1,1.1,1.2))
 
 epsilon <- 1e-10        # Convergence paramater for EM
 maxIter <- 1000         # Maximum number of iterations for EM
@@ -45,7 +45,7 @@ fit.gmm <- gmm.EM(X=X,
                   isDebug=FALSE)
 
 ##===================================================
-# Run EM-GMM, without initial parameters, then the  #
+# Run GMM-EM, without initial parameters, then the  #
 # method will initilize parameters using k-means    #
 ##===================================================
 fit.gmm.kmeans <- gmm.EM(X=X, K=K)
