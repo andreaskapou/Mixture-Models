@@ -92,7 +92,6 @@ gmm.EM <- function(X, K=2, theta, epsilon=1e-10, maxIter=1000, isLog=TRUE, isDeb
     if (NLL.Diff < epsilon){                    # Check for convergence.
       break
     }
-    
   } #End of Expectation Maximization loop.
   
   message("Total iterations: ", i, "\n")
