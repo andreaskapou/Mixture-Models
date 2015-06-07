@@ -1,106 +1,83 @@
+#' Performs EM algorithm for Binomial distributed Probit Regression mixture model.
+#' 
+#' We compute the Negative Log Likelihood (NLL):
+#' - ln p(X|theta) = - Sum_{N}(ln(Sum_{K}(p_k * BinProb(x_n|theta))))
 
-##===============================
-# Set the working directory and #
-# load any required libraries   #
-##===============================
-cur.dir <- dirname(parent.frame(2)$ofile)
-setwd(cur.dir)
-library(R.utils)
-library(ggplot2)
-sourceDirectory("../lib", modifiedOnly=FALSE) # Source the 'lib' directory
-
-##====================
-# Generate the data  #
-##====================
-epsilon     <- 1e-04            # Convergence paramater
-N           <- 400              # Total number of objects to create
-K           <- 3                # Number of clusters
-pi.c        <- c(.45, .35, .2)  # Mixing proportions
-theta       <- matrix(0, nrow=5, ncol=K) # Parameters of the 2nd order polynomial
-for (k in 1:K){
-  theta[,k] <- c(0+k/100, 0+k/100, 0+k/100, 0+k/100, 0+k/100)
-}
-X           <- gen.meth.data(N=N, pi.c=pi.c) # Generate methylation profiles
-
-pdf.w       <- matrix(, N, K)   # Hold the PDF of each point on each cluster k
-post.resp   <- matrix(, N, K)   # Hold responsibilities
-logLik      <- 0
-
-for (t in 1:100){               # Loop until convergence
-  prevLogLik  <- logLik         # Store to check for convergence
+genBinProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug=FALSE){
   
-  ##========
-  # E-Step #
-  ##========
-  for (k in 1:K){ # Calculate the weighted PDF of each cluster for each data point
-    for (i in 1:N){
-      pdf.w[i,k] <- log(pi.c[k]) + genBinomProbRegrLik(theta=theta[,k], D=X[[i]], mode=1)
-    }
-  }
-  # ln p(X|mu,S,p) = Sum_{n=1}^{N}(ln(Sum_{k=1}^{K}(p_k * Bin(x_n|Phi(g)))))
-  logLik      <- sum(log(rowSums(exp(pdf.w))))      # Evaluate the log likelihood
+  N         <- length(X)                        # Length of the dataset
+  post.resp <- matrix(0, nrow=N, ncol=K)        # Hold responsibilities
+  pdf.w     <- matrix(0, nrow=N, ncol=K)        # Hold weighted PDFs
+  all.NLL   <- vector(mode="numeric")           # Hold NLL for all EM iterations
+  NLL       <- 1e+40                            # Initialize Negative Log Likelihood
   
-  post.resp   <- pdf.w - apply(pdf.w, 1, logSumExp) # Normalize the log probability
-  post.resp   <- apply(post.resp, 2, exp)           # Exponentiate to get actual probabilities
+  pi.c      <- params$pi.c                      # Mixing proportions
+  theta     <- params$theta                     # Polynomial coefficients
   
-  ##========
-  # M-Step #
-  ##========
-  for (k in 1:K){
-    N.k       <- sum(post.resp[,k])                 # Sum of responsibilities for cluster k
-    pi.c[k]   <- N.k / N                            # Update mixing proportions for cluster k
+  if (isDebug){
+    cat("Initial values:\n")
+    cat("Theta:", theta, "\n")
+    cat("Mixing proportions:", pi.c, "\n")
     
-    # Update the parameters a, b, c of the polynomial using Conjugate-Gradient method
-    theta[,k] <- optim(par=theta[,k],
-                       fn=sumGenBinomProbRegrLik,
-                       gr=sumGenDerBinomProbRegrLik, X, post.resp[,k],
-                       method="CG",
-                       control = list(fnscale=-1, maxit = 5) )$par
+    cat("Initial NLL:", NLL, "\n")
   }
-  if (abs(logLik - prevLogLik) < epsilon){          # Check for convergence.
-    break
+  
+  ##=========================================
+  # Run Expectation Maximization  algorithm #
+  ##=========================================
+  for (t in 1:maxIter){                         # Loop until convergence
+    prevNLL  <- NLL                             # Store NLL to check for convergence
+    
+    ##===================
+    #       E-Step      #
+    ##===================
+    # Calculate weighted PDF of each cluster for each data point
+    for (k in 1:K){
+      for (i in 1:N){
+        pdf.w[i,k] <- log(pi.c[k]) + genBinomProbRegrLik(theta=theta[,k], D=X[[i]], mode=1)
+      }
+    }
+    # Calculate probabilities using the logSumExp trick for numerical stability
+    Z           <- apply(pdf.w, 1, logSumExp)
+    post.resp   <- pdf.w - Z
+    post.resp   <- apply(post.resp, 2, exp)   # Exponentiate to get actual probabilities
+    NLL         <- -sum(Z)                    # Evaluate the NLL
+    
+    ##===================
+    #       M-Step      #
+    ##===================
+    N.k   <- colSums(post.resp)                 # Sum of responsibilities for each cluster
+    pi.c  <- N.k/N                              # Update mixing proportions for each cluster
+    for (k in 1:K){
+      # Update the parameters a, b, c of the polynomial using Conjugate-Gradient method
+      theta[,k] <- optim(par=theta[,k],
+                         fn=sumGenBinomProbRegrLik,
+                         gr=sumGenDerBinomProbRegrLik, X, post.resp[,k],
+                         method="CG",
+                         control = list(fnscale=-1, maxit = 5) )$par
+    }
+    
+    
+    if (isDebug){
+      cat("i:", t, "\n")
+      cat("NLL:", NLL, "\n")
+    }
+    
+    NLL.Diff  <- prevNLL - NLL                  # Compute NLL difference after ith iteration
+    if (NLL.Diff < 0){
+      stop("Negative log likelihood increases - Something is wrong!")
+    }
+    
+    all.NLL   <- c(all.NLL, NLL)                # Keep all NLL in a vector  
+    if (NLL.Diff < epsilon){                    # Check for convergence.
+      break
+    }
+  } #End of Expectation Maximization loop.
+  
+  message("Total iterations: ", t, "\n")
+  if (t == maxIter){
+    message("Warning: EM did not converge with given maximum iterations!\n\n")
   }
-  print(logLik)
+  
+  return(list(theta=theta, pi.c=pi.c, NLL=NLL, post.resp=post.resp, all.NLL=all.NLL))
 }
-
-
-##=================================================
-# Simple function for second order polynomial     #
-# transformed through through the probit          #
-# function, and thus it is squashed to be in the  #
-# (0,1) interval                                  #
-##=================================================
-ff <- function(theta, X){
-  g   <- theta[1]*X^4 + theta[2]*X^3 + theta[3]*X^2 + theta[4] * X + theta[5]
-  g   <- pnorm(g)
-  return(g)
-}
-xs <- seq(-1,1,len=2000) # create some values
-
-plot(x=xs, y=ff(theta=theta[,1], xs), type="l", xlab="x", ylab="", 
-     main=expression(a*x^2 + b*x + c), col="darkgreen")
-lines(x=xs, y=ff(theta=theta[,2], xs), col="red")
-lines(x=xs, y=ff(theta=theta[,3], xs), col="blue")
-
-
-# Add extra space to right of plot area; change clipping to figure
-par(xpd=T, mar=par()$mar+c(0,0,0,4))
-#par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
-
-plot(X[[7]][1,], X[[7]][3,]/X[[7]][2,], col="darkgreen", pch=24, xlim=c(-1,1), ylim=c(0.05,0.92),
-     xlab="region x", ylab="methylation level")
-lines(x=xs, y=ff(theta=theta[,1], xs), col="darkgreen", lwd=2)
-points(X[[245]][1,], X[[245]][3,]/X[[245]][2,], pch=23, col="red")
-lines(x=xs, y=ff(theta=theta[,3], xs), col="red", lwd=2)
-points(X[[390]][1,], X[[390]][3,]/X[[390]][2,], pch=8, col="darkblue")
-lines(x=xs, y=ff(theta=theta[,2], xs), col="darkblue", lwd=2)
-
-# Add legend to top right, outside plot region
-legend("right", inset=c(-0.1,0), legend=c("1","2", "3"), pch=c(24,23,8), 
-       col=c("darkgreen", "red", "darkblue"), title="Cluster")
-
-dev.copy(png, width = 800, height = 600, filename=paste("../images/genProbitParams", 
-                                                        format(Sys.time(), "%a%b%d%H%M"),".png", sep=""))
-dev.off()
-
-save(theta, file=paste("../files/probitTheta", format(Sys.time(), "%a%b%d%H%M"),".RData", sep=""))
