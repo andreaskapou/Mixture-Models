@@ -12,7 +12,7 @@
 # and for computing the approximate predictive probability.             #
 #                                                                       #
 # Usage: y          <- binomProbRegrLik(theta, D, mode=1)               #
-#        (da,db,dc) <- binomProbRegrLik(theta, D, mode=2)               #
+#        der        <- binomProbRegrLik(theta, D, mode=2)               #
 #                                                                       #
 # Input:                                                                #
 #     theta   is a vector of the parameters of the function             #
@@ -26,20 +26,19 @@
 # Output:                                                               #
 #     y       is the log likelihood                                     #
 #                                                                       #
-#     da      is the derivative wrt to the a parameter                  #
-#     db      is the derivative wrt to the b parameter                  #
-#     dc      is the derivative wrt to the c parameter                  #
-#     ...     is the derivative wrt to the ... parameter                #
-#                                                                       #
+#     der     derivative vector wrt to n polynomial parameters          #
 ##=======================================================================
 genBinomProbRegrLik <- function(theta, D, mode=1){
   X   <- D[1,]            # Data of length L
   t   <- D[2,]            # Number of trials for the corresponding X
   m   <- D[3,]            # Number of successes for the corresponding t
   
-  #deg <- length(theta)
-  
-  g   <- theta[1]*X^4 + theta[2]*X^3 + theta[3]*X^2 + theta[4] * X + theta[5]
+  # Get the data values from the appropriate degree polynomial
+  deg <- NROW(theta)
+  g   <- rep(0, NROW(X))
+  for (i in 1:deg){
+    g <- g + theta[i]*X^(deg-i)
+  }
   Phi <- pnorm(g)         # Squash the function g() to the (0,1) interval
   
   if (mode==1){           # Compute the log likelihood
@@ -47,11 +46,10 @@ genBinomProbRegrLik <- function(theta, D, mode=1){
     return(res)
   }else if (mode==2){     # Compute derivatives wrt to the parameters
     N   <- dnorm(g)       # Density function of the Normal distribution
-    df  <- sum(N*X^4 * (m-t*Phi)/(Phi*(1-Phi))) # Der wrt to a parameter
-    da  <- sum(N*X^3 * (m-t*Phi)/(Phi*(1-Phi))) # Der wrt to a parameter
-    db  <- sum(N*X^2 * (m-t*Phi)/(Phi*(1-Phi))) # Der wrt to b parameter
-    dc  <- sum(N*X * (m-t*Phi)/(Phi*(1-Phi)))   # Der wrt to c parameter
-    dd  <- sum(N * (m-t*Phi)/(Phi*(1-Phi)))     # Der wrt to d parameter
-    return(c(df, da, db, dc, dd))
+    der <- rep(0, deg)
+    for (i in 1: deg){
+      der[i] <- sum(N*X^(deg-i) * (m-t*Phi)/(Phi*(1-Phi))) # Der wrt to ith parameter
+    }
+    return(der)
   }
 }
