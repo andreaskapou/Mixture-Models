@@ -19,7 +19,7 @@ set.seed(12345)                         # Set seed for reproducible results
 ##=============================================
 N       <- 400                            # Number of data points
 K       <- 3                              # Number of clusters
-deg     <- 6                              # Polynomial degree
+deg     <- 3                              # Polynomial degree
 X       <- gen.meth.data(N=N, pi.c=c(.5,.3,.2))  # Generate methylation profiles
 
 epsilon <- 1e-4                           # Convergence paramater for EM
