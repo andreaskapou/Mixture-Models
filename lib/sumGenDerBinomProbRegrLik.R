@@ -1,5 +1,5 @@
 ##=======================================================================
-# sumDerBinomProbRegrLik - Sum of the derivatives wrt to the parameters #
+# sumGenDerBinomProbRegrLik - Sum of the derivatives wrt to the params  #
 # of the Binomial distributed Probit Regression Likelihood over all the #
 # dataset D, weighted by the corresponding responsibilites of each      #
 # cluster. This function will be used in an Optimization procedure for  #
@@ -25,7 +25,7 @@
 #                                                                       #
 ##=======================================================================
 sumGenDerBinomProbRegrLik <- function(theta, D, post.resp){
-  res <- c(0,0,0,0,0)
+  res <- rep(0, NROW(theta))
   for (i in 1:length(D)){
     res = res + genBinomProbRegrLik(theta, D[[i]], mode=2) * post.resp[i]
   }
