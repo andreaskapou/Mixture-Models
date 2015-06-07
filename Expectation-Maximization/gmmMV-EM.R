@@ -71,12 +71,12 @@ gmmMV.EM <- function(X, K=2, theta, epsilon=1e-10, maxIter=1000, isLog=TRUE, isD
     ##===================
     #       M-Step      #
     ##===================
-    N.k   <- colSums(post.resp)                 # Sum of responsibilities for each cluster
-    pi.c  <- N.k / N                            # Update mixing proportions for each cluster
+    N.k           <- colSums(post.resp)         # Sum of responsibilities for each cluster
+    pi.c          <- N.k / N                    # Update mixing proportions for each cluster
     for (k in 1:K){
-      mu[k,]     <- (t(post.resp[,k]) %*% X) / sum(post.resp[,k]) # Update mu
-      X.cen <- sweep(X, MARGIN=2, mu[k,], FUN="-") # Update Sigma
-      Sigma[[k]] <- t(X.cen) %*% (X.cen * post.resp[,k]) / sum(post.resp[,k])
+      mu[k,]      <- (t(post.resp[,k]) %*% X) / N.k[k]            # Update mu
+      X.cen       <- sweep(X, MARGIN=2, STATS=mu[k,], FUN="-")
+      Sigma[[k]]  <- t(X.cen) %*% (X.cen*post.resp[,k]) / N.k[k]  # Update Sigma
     }
     
     
