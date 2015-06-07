@@ -1,10 +1,10 @@
 ##=======================================================================
-# sumBinomProbRegrLik - Sum of Binomial distributed Probit Regression   #
+# sumGenBinomProbRegrLik - Sum of Binomial distributed Probit Regression#
 # Likelihood over all the dataset D, weighted by the corresponding      #
 # responsibilites of each cluster. This function will be used in an     #
 # Optimization procedure for the M-step of the EM algorithm             #
 #                                                                       #
-# Usage: res  <- sumBinomProbRegrLik(theta, D, post.resp)               #
+# Usage: res  <- sumGenBinomProbRegrLik(theta, D, post.resp)            #
 #                                                                       #
 # Input:                                                                #
 #     theta   is a vector of the parameters of the function             #
