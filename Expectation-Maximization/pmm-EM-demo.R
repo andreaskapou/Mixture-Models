@@ -14,7 +14,7 @@ sourceDirectory("../lib", modifiedOnly=FALSE) # Source the 'lib' directory
 set.seed(12345)         # Set seed for reproducible results
 
 ##=============================================
-# Generate the data  and initialize variables #
+# Generate the data and initialize variables  #
 ##=============================================
 N       <- 500          # Number of data points
 K       <- 3            # Number of clusters
@@ -38,7 +38,7 @@ fit.pmm <- pmm.EM(X=X,
                   epsilon=epsilon, 
                   maxIter=maxIter, 
                   isLog=TRUE, 
-                  isDebug=FALSE)
+                  isDebug=TRUE)
 
 ##===================================================
 # Run PMM-EM, without initial parameters, then the  #
