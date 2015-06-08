@@ -1,4 +1,4 @@
-#' Performs EM algorithm for univariate Gaussian Mixture Models (GMMs).
+#' Performs EM algorithm for multivariate Gaussian Mixture Models (GMMs).
 #' 
 #' Notation and algorithm follows Bishop's book Ch.9, "Pattern Recognition 
 #' and Machina Learning". BUT, it computes the Negative Log Likelihood (NLL):
@@ -7,7 +7,7 @@
 #' This method works in different modes, depending on the parameters given. 
 #' If no 'theta' parameter is given, then it initializes the parameters using
 #' 'kmeans' algorithm. 
-
+##==================================================================================
 gmmMV.EM <- function(X, K=2, theta, epsilon=1e-10, maxIter=1000, isLog=TRUE, isDebug=FALSE){
   
   N         <- NROW(X)                          # Length of the dataset
@@ -89,12 +89,10 @@ gmmMV.EM <- function(X, K=2, theta, epsilon=1e-10, maxIter=1000, isLog=TRUE, isD
     if (NLL.Diff < 0){
       stop("Negative log likelihood increases - Something is wrong!")
     }
-    
     all.NLL   <- c(all.NLL, NLL)                # Keep all NLL in a vector  
     if (NLL.Diff < epsilon){                    # Check for convergence.
       break
     }
-    
   } #End of Expectation Maximization loop.
   
   message("Total iterations: ", i, "\n")
@@ -104,4 +102,3 @@ gmmMV.EM <- function(X, K=2, theta, epsilon=1e-10, maxIter=1000, isLog=TRUE, isD
   
   return(list(mu=mu, Sigma=Sigma, pi.c=pi.c, NLL=NLL, post.resp=post.resp, all.NLL=all.NLL))
 }
-

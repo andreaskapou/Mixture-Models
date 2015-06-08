@@ -19,7 +19,7 @@ sourceDirectory("../lib", modifiedOnly=FALSE) # Source the 'lib' directory
 set.seed(12345)         # Set seed for reproducible results
 
 X       <- as.matrix(faithful)
-K       <- 2          # Number of clusters
+K       <- 2            # Number of clusters
 
 ##=====================================================
 # Run GMM-MV-EM, without initial parameters, then the #
