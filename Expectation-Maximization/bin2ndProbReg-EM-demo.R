@@ -1,14 +1,16 @@
-##===================================================================
-# Script for running Binomial Distributed Probit Regression Mixture #
-# Models using EM to fit the model to the data.                     #
-##===================================================================
+##=====================================================================
+# Script for running Binomial Distributed Probit Regression Mixture   #
+# Models using EM to fit the model to the data. This script runs only #
+# for 2nd order polynomial functions. The general case for nth order  #
+# polynomial functions can be run using binProbReg-EM-demo.R script   #
+##=====================================================================
 
 ##=============================================================
 # Set the working directory and load any required libraries   #
 ##=============================================================
 cur.dir <- dirname(parent.frame(2)$ofile)
 setwd(cur.dir)
-source("binProbReg-EM.R")
+source("bin2ndProbReg-EM.R")
 library(R.utils)
 library(ggplot2)
 sourceDirectory("../lib", modifiedOnly=FALSE) # Source the 'lib' directory
@@ -36,53 +38,45 @@ params <- list(pi.c=pi.c, theta=theta)  # Wrap all the parameters in a list
 ##===========================================================
 # Run BIN.PROB.REG-EM, explicitly giving initial parameters #
 ##===========================================================
-fit.binProbReg <- binProbReg.EM(X=X, 
-                                K=K, 
-                                params=params, 
-                                epsilon=epsilon, 
-                                maxIter=maxIter,
-                                isDebug=TRUE)
+fit.bin2ndProbReg <- bin2ndProbReg.EM(X=X, 
+                                      K=K, 
+                                      params=params, 
+                                      epsilon=epsilon, 
+                                      maxIter=maxIter,
+                                      isDebug=TRUE)
 
 
-##=================================================
-# Simple function for second order polynomial     #
-# transformed through the probit function, and    #
-# thus it is squashed to be in the (0,1) interval #
-##=================================================
-ff <- function(theta, X){
-  g   <- theta[1]*X^2 + theta[2]*X + theta[3]
-  g   <- pnorm(g)
-  return(g)
-}
+##======================================================================
+# Plot the results showing the K different functions that were learned #
+##======================================================================
 xs <- seq(-1,1,len=2000) # create some values
-
-plot(x=xs, y=ff(theta=fit.binProbReg$theta[,1], xs), type="l", xlab="x", ylab="", 
-     main=expression(a*x^2 + b*x + c), col="darkgreen")
-lines(x=xs, y=ff(theta=fit.binProbReg$theta[,2], xs), col="red")
-lines(x=xs, y=ff(theta=fit.binProbReg$theta[,3], xs), col="blue")
-
-
-par(xpd=T, mar=par()$mar+c(0,0,0,4))
 # Add extra space to right of plot area; change clipping to figure
-#par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+#par(xpd=T, mar=par()$mar+c(0,0,0,4))
+par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
 
 plot(X[[7]][1,], X[[7]][3,]/X[[7]][2,], col="darkgreen", pch=24, xlim=c(-1,1), 
      ylim=c(0.05,0.92), xlab="region x", ylab="methylation level")
-lines(x=xs, y=ff(theta=fit.binProbReg$theta[,1], xs), col="darkgreen", lwd=2)
+lines(x=xs, y=probPolynomFun(theta=fit.bin2ndProbReg$theta[,1], xs), 
+      col="darkgreen", lwd=2)
 points(X[[245]][1,], X[[245]][3,]/X[[245]][2,], pch=23, col="red")
-lines(x=xs, y=ff(theta=fit.binProbReg$theta[,3], xs), col="red", lwd=2)
+lines(x=xs, y=probPolynomFun(theta=fit.bin2ndProbReg$theta[,3], xs), 
+      col="red", lwd=2)
 points(X[[390]][1,], X[[390]][3,]/X[[390]][2,], pch=8, col="darkblue")
-lines(x=xs, y=ff(theta=fit.binProbReg$theta[,2], xs), col="darkblue", lwd=2)
+lines(x=xs, y=probPolynomFun(theta=fit.bin2ndProbReg$theta[,2], xs), 
+      col="darkblue", lwd=2)
 
 # Add legend to top right, outside plot region
+#legend(locator(1),c("Cluster", "group B"), pch = c(1,2), lty = c(1,2))
 legend("right", inset=c(-0.1,0), legend=c("1","2", "3"), pch=c(24,23,8), 
        col=c("darkgreen", "red", "darkblue"), title="Cluster")
 
-#legend(locator(1),c("Cluster", "group B"), pch = c(1,2), lty = c(1,2))
 
-#dev.copy(png, width = 800, height = 600, 
-#         filename=paste("../images/probitParams", 
-#                        format(Sys.time(), "%a%b%d%H%M"),".png", sep=""))
-#dev.off()
-#save(theta, file=paste("../files/probitTheta", 
-#                       format(Sys.time(), "%a%b%d%H%M"),".RData", sep=""))
+##=============================================================
+# Store plots and results locally in the disk for future use  #
+##=============================================================
+dev.copy(png, width = 800, height = 600, 
+         filename=paste("../images/probit2ndParams", 
+                        format(Sys.time(), "%a%b%d%H%M"),".png", sep=""))
+dev.off()
+save(fit.bin2ndProbReg, file=paste("../files/probit2ndTheta", 
+                       format(Sys.time(), "%a%b%d%H%M"),".RData", sep=""))

@@ -1,9 +1,11 @@
 #' Performs EM algorithm for Binomial distributed Probit Regression mixture model.
+#' This function runs only for 2nd order polynomial functions. The general case 
+#' for nth order polynomial functions is implemented in binProbReg-EM.R script 
 #' 
 #' We compute the Negative Log Likelihood (NLL):
 #' - ln p(X|theta) = - Sum_{N}(ln(Sum_{K}(p_k * BinProb(x_n|theta))))
 
-binProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug=FALSE){
+bin2ndProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug=FALSE){
   
   N         <- length(X)                        # Length of the dataset
   post.resp <- matrix(0, nrow=N, ncol=K)        # Hold responsibilities
@@ -34,7 +36,7 @@ binProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug=FA
     # Calculate weighted PDF of each cluster for each data point
     for (k in 1:K){
       for (i in 1:N){
-        pdf.w[i,k] <- log(pi.c[k]) + binomProbRegrLik(theta=theta[,k], D=X[[i]], mode=1)
+        pdf.w[i,k] <- log(pi.c[k]) + bin2ndProbRegrLik(theta=theta[,k], D=X[[i]], mode=1)
       }
     }
     # Calculate probabilities using the logSumExp trick for numerical stability
@@ -51,8 +53,8 @@ binProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug=FA
     for (k in 1:K){
       # Update the parameters a, b, c of the polynomial using Conjugate-Gradient method
       theta[,k] <- optim(par=theta[,k],
-                         fn=sumBinomProbRegrLik,
-                         gr=sumDerBinomProbRegrLik, X, post.resp[,k],
+                         fn=sumBin2ndPRL,
+                         gr=sumDerBin2ndPRL, X, post.resp[,k],
                          method="CG",
                          control = list(fnscale=-1, maxit = 5) )$par
     }
@@ -67,7 +69,6 @@ binProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug=FA
     if (NLL.Diff < 0){
       stop("Negative log likelihood increases - Something is wrong!")
     }
-    
     all.NLL   <- c(all.NLL, NLL)                # Keep all NLL in a vector  
     if (NLL.Diff < epsilon){                    # Check for convergence.
       break
