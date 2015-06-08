@@ -13,11 +13,12 @@ cur.dir <- dirname(parent.frame(2)$ofile)
 setwd(cur.dir)
 source("gmm-EM.R")
 library(R.utils)
+library(mixtools)
 sourceDirectory("../lib", modifiedOnly=FALSE) # Source the 'lib' directory
 set.seed(12345)         # Set seed for reproducible results
 
 ##=============================================
-# Generate the data  and initialize variables #
+# Generate the data and initialize variables #
 ##=============================================
 N       <- 500          # Number of data points
 K       <- 3            # Number of clusters
@@ -42,7 +43,7 @@ fit.gmm <- gmm.EM(X=X,
                   epsilon=epsilon, 
                   maxIter=maxIter, 
                   isLog=TRUE, 
-                  isDebug=FALSE)
+                  isDebug=TRUE)
 
 ##===================================================
 # Run GMM-EM, without initial parameters, then the  #

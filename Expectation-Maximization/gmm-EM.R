@@ -7,6 +7,7 @@
 #' This method works in different modes, depending on the parameters given. 
 #' If no 'theta' parameter is given, then it initializes the parameters using
 #' 'kmeans' algorithm. 
+##================================================================================
 
 gmm.EM <- function(X, K=2, theta, epsilon=1e-10, maxIter=1000, isLog=TRUE, isDebug=FALSE){
   
@@ -87,7 +88,6 @@ gmm.EM <- function(X, K=2, theta, epsilon=1e-10, maxIter=1000, isLog=TRUE, isDeb
     if (NLL.Diff < 0){
       stop("Negative log likelihood increases - Something is wrong!")
     }
-    
     all.NLL   <- c(all.NLL, NLL)                # Keep all NLL in a vector  
     if (NLL.Diff < epsilon){                    # Check for convergence.
       break
