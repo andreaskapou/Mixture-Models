@@ -62,3 +62,16 @@ for (k in 1:K){
   mixture <- mixture + density * fit.pmm$pi.c[k]
 }
 lines(x, mixture, col="red",lwd=2)
+
+
+cat("\n\nPMM-EM (with given parameters):\n")
+cat("Total iterations:", length(fit.pmm$all.NLL), "\n")
+cat("Mean:", fit.pmm$lambdas, "\n")
+cat("Mixing proportions:", fit.pmm$pi.c, "\n")
+cat("Best NLL:", fit.pmm$NLL, "\n\n")
+
+cat("PMM-EM (with parameters initialized by k-means):\n")
+cat("Total iterations:", length(fit.pmm.kmeans$all.NLL), "\n")
+cat("Mean:", fit.pmm.kmeans$lambdas, "\n")
+cat("Mixing proportions:", fit.pmm.kmeans$pi.c, "\n")
+cat("Best NLL:", fit.pmm.kmeans$NLL, "\n\n")
