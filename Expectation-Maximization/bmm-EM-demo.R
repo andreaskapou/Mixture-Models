@@ -14,7 +14,7 @@ sourceDirectory("../lib", modifiedOnly=FALSE) # Source the 'lib' directory
 set.seed(12345)         # Set seed for reproducible results
 
 ##=============================================
-# Generate the data  and initialize variables #
+# Generate the data and initialize variables #
 ##=============================================
 N       <- 500          # Number of data points
 K       <- 3            # Number of clusters
@@ -41,10 +41,23 @@ fit.bmm <- bmm.EM(X=X,
                   epsilon=epsilon, 
                   maxIter=maxIter, 
                   isLog=TRUE, 
-                  isDebug=FALSE)
+                  isDebug=TRUE)
 
 ##===================================================
 # Run GMM-EM, without initial parameters, then the  #
 # method will initilize parameters using k-means    #
 ##===================================================
 fit.bmm.kmeans <- bmm.EM(X=X, r=r, K=K)
+
+
+cat("\n\nBMM-EM (with given parameters):\n")
+cat("Total iterations:", length(fit.bmm$all.NLL), "\n")
+cat("Probabilities:", fit.bmm$mu, "\n")
+cat("Mixing proportions:", fit.bmm$pi.c, "\n")
+cat("Best NLL:", fit.bmm$NLL, "\n\n")
+
+cat("BMM-EM (with parameters initialized by k-means):\n")
+cat("Total iterations:", length(fit.bmm.kmeans$all.NLL), "\n")
+cat("Probabilities:", fit.bmm.kmeans$pi, "\n")
+cat("Mixing proportions:", fit.bmm.kmeans$pi.c, "\n")
+cat("Best NLL:", fit.bmm.kmeans$NLL, "\n\n")
