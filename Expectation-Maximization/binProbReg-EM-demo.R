@@ -19,7 +19,7 @@ set.seed(12345)                         # Set seed for reproducible results
 ##=============================================
 N       <- 400                            # Number of data points
 K       <- 3                              # Number of clusters
-deg     <- 5                              # Polynomial degree
+deg     <- 3                              # Polynomial degree
 X       <- gen.meth.data(N=N, pi.c=c(.5,.3,.2))  # Generate methylation profiles
 
 epsilon <- 1e-4                           # Convergence paramater for EM
@@ -77,5 +77,5 @@ dev.copy(png, width = 800, height = 600,
          filename=paste("../images/probitParams", 
                         format(Sys.time(), "%a%b%d%H%M"),".png", sep=""))
 dev.off()
-save(fit.bin2ndProbReg, file=paste("../files/probitTheta", 
+save(fit.binProbReg, file=paste("../files/probitTheta", 
                                    format(Sys.time(), "%a%b%d%H%M"),".RData", sep=""))
