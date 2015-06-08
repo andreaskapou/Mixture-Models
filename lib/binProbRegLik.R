@@ -1,5 +1,5 @@
 ##=======================================================================
-# binomProbRegrLik - Binomial distributed Probit Regression Likelihood  #
+# binProbRegLik - Binomial distributed Probit Regression Likelihood     #
 # function. The expression for the log likelihood is:                   #
 #   log L(theta;x) = Sum_{l=1}^{L}log(Bin(n_{l}, Phi(g(x_{l});theta)))  #
 #                                                                       #
@@ -11,8 +11,8 @@
 # derivatives wrt to the parameters of the polynomials                  #
 # and for computing the approximate predictive probability.             #
 #                                                                       #
-# Usage: y          <- binomProbRegrLik(theta, D, mode=1)               #
-#        der        <- binomProbRegrLik(theta, D, mode=2)               #
+# Usage: y          <- binProbRegLik(theta, D, mode=1)                  #
+#        der        <- binProbRegLik(theta, D, mode=2)                  #
 #                                                                       #
 # Input:                                                                #
 #     theta   is a vector of the parameters of the function             #
@@ -28,7 +28,7 @@
 #                                                                       #
 #     der     derivative vector wrt to n polynomial parameters          #
 ##=======================================================================
-genBinomProbRegrLik <- function(theta, D, mode=1){
+binProbRegLik <- function(theta, D, mode=1){
   X   <- D[1,]            # Data of length L
   t   <- D[2,]            # Number of trials for the corresponding X
   m   <- D[3,]            # Number of successes for the corresponding t
@@ -47,8 +47,8 @@ genBinomProbRegrLik <- function(theta, D, mode=1){
   }else if (mode==2){     # Compute derivatives wrt to the parameters
     N   <- dnorm(g)       # Density function of the Normal distribution
     der <- rep(0, deg)
-    for (i in 1: deg){
-      der[i] <- sum(N*X^(deg-i) * (m-t*Phi)/(Phi*(1-Phi))) # Der wrt to ith parameter
+    for (i in 1: deg){    # Der wrt to ith coefficient
+      der[i] <- sum(N*X^(deg-i) * (m-t*Phi)/(Phi*(1-Phi))) 
     }
     return(der)
   }

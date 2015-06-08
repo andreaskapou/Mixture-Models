@@ -24,7 +24,7 @@ K       <- 3                            # Number of clusters
 X       <- gen.meth.data(N=N, pi.c=c(.5,.3,.2))  # Generate methylation profiles
 
 epsilon <- 1e-4                         # Convergence paramater for EM
-maxIter <- 1000                         # Maximum number of iterations for EM
+maxIter <- 100                          # Maximum number of iterations for EM
 
 # Optional parameter initialization.
 pi.c    <- rep(1/K, K)                  # Initialize mixing proportions for each cluster

@@ -1,5 +1,5 @@
 ##=======================================================================
-# bin2ndProbRegrLik - Binomial distributed Probit Regression Likelihood #
+# bin2ndProbRegLik - Binomial distributed Probit Regression Likelihood  #
 # function. The expression for the log likelihood is:                   #
 #   log L(theta;x) = Sum_{l=1}^{L}log(Bin(n_{l}, Phi(g(x_{l});theta)))  #
 #                                                                       #
@@ -11,8 +11,8 @@
 # derivatives wrt to the parameters of the polynomials                  #
 # and for computing the approximate predictive probability.             #
 #                                                                       #
-# Usage: y          <- binomProbRegrLik(theta, D, mode=1)               #
-#        (da,db,dc) <- binomProbRegrLik(theta, D, mode=2)               #
+# Usage: y          <- bin2ndProbRegLik(theta, D, mode=1)               #
+#        (da,db,dc) <- bin2ndProbRegLik(theta, D, mode=2)               #
 #                                                                       #
 # Input:                                                                #
 #     theta   is a vector of the parameters of the function             #
@@ -31,7 +31,7 @@
 #     dc      is the derivative wrt to the c parameter                  #
 #                                                                       #
 ##=======================================================================
-bin2ndProbRegrLik <- function(theta, D, mode=1){
+bin2ndProbRegLik <- function(theta, D, mode=1){
   X   <- D[1,]            # Data of length L
   t   <- D[2,]            # Number of trials for the corresponding X
   m   <- D[3,]            # Number of successes for the corresponding t

@@ -5,7 +5,7 @@
 # cluster. This function will be used in an Optimization procedure for  #
 # the M-step of the EM algorithm                                        #
 #                                                                       #
-# Usage: res  <- sumBinomProbRegrLik(theta, D, post.resp)               #
+# Usage: res  <- sumDerBin2ndPRL(theta, D, post.resp)                   #
 #                                                                       #
 # Input:                                                                #
 #     theta   is a vector of the parameters of the function             #
@@ -27,7 +27,7 @@
 sumDerBin2ndPRL <- function(theta, D, post.resp){
   res <- c(0,0,0)
   for (i in 1:length(D)){
-    res = res + bin2ndProbRegrLik(theta, D[[i]], mode=2) * post.resp[i]
+    res = res + bin2ndProbRegLik(theta, D[[i]], mode=2) * post.resp[i]
   }
   return(res)
 }

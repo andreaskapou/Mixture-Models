@@ -1,10 +1,11 @@
 ##=======================================================================
-# sumGenBinomProbRegrLik - Sum of Binomial distributed Probit Regression#
-# Likelihood over all the dataset D, weighted by the corresponding      #
-# responsibilites of each cluster. This function will be used in an     #
-# Optimization procedure for the M-step of the EM algorithm             #
+# sumDerBinPRL - Sum of the derivatives wrt to the params of the        #
+# Binomial distributed Probit Regression Likelihood over all the        #
+# dataset D, weighted by the corresponding responsibilites of each      #
+# cluster. This function will be used in an Optimization procedure for  #
+# the M-step of the EM algorithm                                        #
 #                                                                       #
-# Usage: res  <- sumGenBinomProbRegrLik(theta, D, post.resp)            #
+# Usage: res  <- sumDerBinPRL(theta, D, post.resp)                      #
 #                                                                       #
 # Input:                                                                #
 #     theta   is a vector of the parameters of the function             #
@@ -19,13 +20,14 @@
 #     post.resp are the posterior probabilities, rersponsibility the    #
 #               cluster k takes on data point x                         #
 # Output:                                                               #
-#     res     is the total log likelihood for all the regions i         #
+#     res     is a vector containing the total log likelihood of the    #
+#               derivatives wrt to the parameters for all the regions i #
 #                                                                       #
 ##=======================================================================
-sumGenBinomProbRegrLik <- function(theta, D, post.resp){
-  res <- 0
+sumDerBinPRL <- function(theta, D, post.resp){
+  res <- rep(0, NROW(theta))
   for (i in 1:length(D)){
-    res = res + genBinomProbRegrLik(theta, D[[i]], mode=1) * post.resp[i]
+    res = res + binProbRegLik(theta, D[[i]], mode=2) * post.resp[i]
   }
   return(res)
 }

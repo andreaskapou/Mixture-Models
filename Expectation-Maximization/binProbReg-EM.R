@@ -2,8 +2,9 @@
 #' 
 #' We compute the Negative Log Likelihood (NLL):
 #' - ln p(X|theta) = - Sum_{N}(ln(Sum_{K}(p_k * BinProb(x_n|theta))))
+##=================================================================================
 
-genBinProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug=FALSE){
+binProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug=FALSE){
   
   N         <- length(X)                        # Length of the dataset
   post.resp <- matrix(0, nrow=N, ncol=K)        # Hold responsibilities
@@ -34,7 +35,7 @@ genBinProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug
     # Calculate weighted PDF of each cluster for each data point
     for (k in 1:K){
       for (i in 1:N){
-        pdf.w[i,k] <- log(pi.c[k]) + genBinomProbRegrLik(theta=theta[,k], D=X[[i]], mode=1)
+        pdf.w[i,k] <- log(pi.c[k]) + binProbRegLik(theta=theta[,k], D=X[[i]], mode=1)
       }
     }
     # Calculate probabilities using the logSumExp trick for numerical stability
@@ -51,12 +52,12 @@ genBinProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug
     for (k in 1:K){
       # Update the parameters a, b, c of the polynomial using Conjugate-Gradient method
       theta[,k] <- optim(par=theta[,k],
-                         fn=sumGenBinomProbRegrLik,
-                         gr=sumGenDerBinomProbRegrLik, X, post.resp[,k],
+                         fn=sumBinPRL,
+                         gr=sumDerBinPRL, X, post.resp[,k],
                          method="CG",
                          control = list(fnscale=-1, maxit = 5) )$par
     }
-    
+
     
     if (isDebug){
       cat("i:", t, "\n")
@@ -67,7 +68,6 @@ genBinProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug
     if (NLL.Diff < 0){
       stop("Negative log likelihood increases - Something is wrong!")
     }
-    
     all.NLL   <- c(all.NLL, NLL)                # Keep all NLL in a vector  
     if (NLL.Diff < epsilon){                    # Check for convergence.
       break

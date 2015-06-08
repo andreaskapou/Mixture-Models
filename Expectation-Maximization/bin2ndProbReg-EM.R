@@ -4,6 +4,7 @@
 #' 
 #' We compute the Negative Log Likelihood (NLL):
 #' - ln p(X|theta) = - Sum_{N}(ln(Sum_{K}(p_k * BinProb(x_n|theta))))
+##==================================================================================
 
 bin2ndProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug=FALSE){
   
@@ -36,7 +37,7 @@ bin2ndProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug
     # Calculate weighted PDF of each cluster for each data point
     for (k in 1:K){
       for (i in 1:N){
-        pdf.w[i,k] <- log(pi.c[k]) + bin2ndProbRegrLik(theta=theta[,k], D=X[[i]], mode=1)
+        pdf.w[i,k] <- log(pi.c[k]) + bin2ndProbRegLik(theta=theta[,k], D=X[[i]], mode=1)
       }
     }
     # Calculate probabilities using the logSumExp trick for numerical stability
