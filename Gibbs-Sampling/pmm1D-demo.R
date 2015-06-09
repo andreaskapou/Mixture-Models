@@ -9,36 +9,46 @@ library(coda)
 library(R.utils)
 source('pmm1D-gibbs.R')
 sourceDirectory("../lib", modifiedOnly=FALSE)
+set.seed(1)
 
-##===========================
-# Initialize main variables #
-##===========================
+##=============================================
+# Initialize main variables and generate data #
+##=============================================
 K           <- 3      # Number of clusters
 N           <- 500    # Number of objects
-N.Sims      <- 10000  # Set the number of simulations
-burnin      <- 1000   # Set how many samples should be burned in
-Poisson     <- list() # Create a Poisson object
-
-##====================
-# Generate the data  #
-##====================
-X <- gen.poisson(N=N, K=K, pi.c=c(.3,.2,.5), lambdas=c(7,26,60))
+X   <- gen.poisson(N=N, K=K, pi.c=c(.3,.2,.5), lambdas=c(7,10,15))
 
 ##=========================
 # Initialize variables    #
 ##=========================
-cl            <- kmeans(X, K, nstart = 25)    # Use Kmeans with random starts
-C.n           <- cl$cluster                   # Get the mixture components
-pi.cur        <- as.vector(table(C.n)/NROW(X))# Mixing proportions
-dir.a         <- rep(1/K, K)                  # Dirichlet concentration parameter
-Poisson$l     <- as.vector(cl$centers)        # Poisson mean for each cluster
-Poisson$Gamma <- list(a=1, b=1)               # Initialize Gamma hyperparameters
-logl          <- TRUE                         # If we want to compute log likel
+N.Sims        <- 10000        # Set the number of simulations
+burnin        <- 5000         # Set how many samples should be discarded
+dir.a         <- rep(1, K)    # Dirichlet concentration parameter
+pi.cur        <- rep(1/K, K)  # Initialize mixing proportions for each cluster
 
-##===================================
-# Do inference using Gibbs sampling #
-##===================================
-gibbs <- pmm1D.gibbs(X, K, N.Sims, burnin, Poisson, pi.cur, dir.a, logl)
+
+Poisson       <- list()       # Create an object of type Poisson
+Poisson$l     <- c(2,4,6)     # Initialize means for each cluster
+Poisson$Gamma <- list(shape.0=1, rate.0=1)  # Gamma hyperparameters
+
+params        <- list(Poisson=Poisson, pi.cur=pi.cur, dir.a=dir.a)
+
+##=======================================================
+# Do inference using Gibbs sampling, explicitly giving  #
+# initial parameters.                                   #
+##=======================================================
+gibbs <- pmm1D.gibbs(X=X, 
+                     K=K, 
+                     N.Sims=N.Sims, 
+                     burnin=burnin, 
+                     params=params,
+                     logl=TRUE)
+
+##=================================================================
+# Do inference using Gibbs sampling, without initial parameters,  #
+# the method will initilize parameters using k-means              #
+##=================================================================
+gibbs.kmeans <- pmm1D.gibbs(X=X, K=K)
 
 ##=====================================
 # Plot the data points and their pdfs #
@@ -52,8 +62,8 @@ hist(X, breaks = 22, freq=FALSE, col="lightblue", xlim=c(min(X)-1,max(X)+1),
 mixture = 0.0
 for (k in 1:K){
   # Calculate the estimated density
-  density <- dpois(x, lambda=mean(gibbs$lambda.draws[,k]))
-  mixture <- mixture + density * mean(gibbs$pi.draws[,k])
+  density <- dpois(x, lambda=gibbs$summary$l[k])
+  mixture <- mixture + density * gibbs$summary$pi[k]
 }
 lines(x,mixture,col="red",lwd=2)
 
@@ -62,14 +72,14 @@ lines(x,mixture,col="red",lwd=2)
 # Example of using cumsum function to plot  #
 # the running mean of the MCMC samples.     #
 ##===========================================
-plot(cumsum(gibbs$lambda.draws[,1])/(1:length(gibbs$lambda.draws[,1])), type="l", 
+plot(cumsum(gibbs$draws$l[,1])/(1:length(gibbs$draws$l[,1])), type="l", 
      xlab="time", ylab="x", lwd=2, col="steelblue", ylim=c(-1,9))
-lines(cumsum(gibbs$lambda.draws[,2])/(1:length(gibbs$lambda.draws[,2])), lwd=2, col="orange3")
-lines(cumsum(gibbs$lambda.draws[,3])/(1:length(gibbs$lambda.draws[,3])), lwd=2, col="darkgreen")
+lines(cumsum(gibbs$draws$l[,2])/(1:length(gibbs$draws$l[,2])), lwd=2, col="orange3")
+lines(cumsum(gibbs$draws$l[,3])/(1:length(gibbs$draws$l[,3])), lwd=2, col="darkgreen")
 
-plot(gibbs$pi.draws[,1], type="l", xlab="time", ylab="x", lwd=2, col="steelblue", ylim=c(0.1,0.6))
-lines(gibbs$pi.draws[,2], lwd=2, col="orange3")
-lines(gibbs$pi.draws[,3], lwd=2, col="darkgreen")
+plot(gibbs$draws$pi[,1], type="l", xlab="time", ylab="x", lwd=2, col="steelblue", ylim=c(0.1,0.6))
+lines(gibbs$draws$pi[,2], lwd=2, col="orange3")
+lines(gibbs$draws$pi[,3], lwd=2, col="darkgreen")
 
 
 ##===========================================
@@ -77,8 +87,19 @@ lines(gibbs$pi.draws[,3], lwd=2, col="darkgreen")
 # and use the coda for plotting and in      #
 # general summary statistics                #
 ##===========================================
-lambda.draws <- mcmc(gibbs$lambda.draws)
+lambda.draws <- mcmc(gibbs$draws$l)
 plot(lambda.draws)
+HPDinterval(lambda.draws, 0.95)
 
-pi.draws <- mcmc(gibbs$pi.draws)
+pi.draws <- mcmc(gibbs$draws$pi)
 plot(pi.draws)
+
+combinedchains = mcmc.list(mcmc(gibbs$draws$l), mcmc(gibbs.kmeans$draws$l))
+plot(combinedchains)
+gelman.diag(combinedchains)
+gelman.plot(combinedchains)
+
+NLL <- mcmc(gibbs$summary$NLL)
+traceplot(NLL)
+
+plotMixAutoc(gibbs)

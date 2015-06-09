@@ -1,4 +1,4 @@
-pmm1D.gibbs <-  function(X, K=2, N.Sims, burnin, Poisson, pi.cur, dir.a, logl=TRUE){
+pmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params, logl=TRUE){
   ##================================================================
   # Function which uses Gibbs sampling so as to find the posterior #
   # of the Hierarchical Dirichlet Finite Mixture Model with        #
@@ -9,13 +9,41 @@ pmm1D.gibbs <-  function(X, K=2, N.Sims, burnin, Poisson, pi.cur, dir.a, logl=TR
   post.resp     <- matrix(0, nrow=N, ncol=K)  # Posterior responsibilities
   pdf.w         <- matrix(0, nrow=N, ncol=K)  # PDF of each point on each cluster k
   C.n           <- matrix(0, nrow=N, ncol=K)  # Mixture components
+  C.matrix      <- matrix(0, nrow=N, ncol=K)  # Total Mixture components
+  NLL           <- vector(mode="numeric")     # Hold NLL for all MCMC iterations
   x.k.bar       <- vector(length=K)           # Sample mean for each cluster k 
   lambda.draws  <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Mean of each Poisson
   pi.draws      <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Mixing Proportions
   
+  ##===============================================
+  # If 'params' not defined initialize parameters #
+  ##===============================================
+  if (missing(params)){
+    Poisson       <- list()
+    cl            <- kmeans(X, K, nstart = 25)    # Use Kmeans with random starts
+    C             <- cl$cluster                   # Get the mixture components
+    pi.cur        <- as.vector(table(C)/NROW(X))  # Mixing proportions
+    dir.a         <- rep(1/K, K)                  # Dirichlet concentration parameter
+    Poisson$l     <- as.vector(cl$centers)        # Poisson mean for each cluster
+    Poisson$Gamma <- list(shape.0=1, rate.0=1)    # Initialize Gamma hyperparameters
+    
+    ##=============================================================
+    # Ordering constraint:                                        #
+    #   Order all the values according to the mean parameter 'mu' #
+    ##=============================================================
+    #Order       <- order(Poisson$l)
+    #pi.cur      <- pi.cur[Order]
+    #Poisson$l   <- Poisson$l[Order]
+  }else{
+    Poisson     <- params$Poisson
+    pi.cur      <- params$pi.cur
+    dir.a       <- params$dir.a
+  }
+  
   for (t in 1:N.Sims){
     # Compute responsibilities
-    post.resp   <- compute.resp(X, pdf.w, K, Poisson, pi.cur, logl)
+    res         <- compute.resp(X, pdf.w, K, Poisson, pi.cur, logl)
+    post.resp   <- res$post.resp
     # Draw mixture components for ith simulation
     C.n         <- c.n.update(N, K, post.resp)
     # Calculate component counts of each cluster
@@ -32,29 +60,74 @@ pmm1D.gibbs <-  function(X, K=2, N.Sims, burnin, Poisson, pi.cur, dir.a, logl=TR
     # Update posterior mean
     Poisson$l   <- lambda.update(K, Poisson, N.k, x.k.bar)
 
+    ##=============================================================
+    # Ordering constraint:                                        #
+    #   Order all the values according to the mean parameter 'mu' #
+    ##=============================================================
+    #Order       <- order(Poisson$l)
+    #pi.cur      <- pi.cur[Order]
+    #Poisson$l   <- Poisson$l[Order]
+    
     # Keep only the simulations after the burned in period has passed
     if (t > burnin){
+      NLL                       <- c(NLL, res$NLL)
+      C.matrix                  <- C.matrix + C.n
       pi.draws[t - burnin,]     <- pi.cur
       lambda.draws[t - burnin,] <- Poisson$l
     }
   }
-  return(list(pi.draws=pi.draws, lambda.draws=lambda.draws))
+  
+  # Object to keep input data
+  dat         <- NULL
+  dat$X       <- X
+  dat$K       <- K
+  dat$N       <- N
+  dat$N.Sims  <- N.Sims
+  dat$burnin  <- burnin
+  
+  # Object to hold all the MCMC draws
+  draws       <- NULL
+  draws$pi    <- pi.draws
+  draws$l     <- lambda.draws
+
+  # Object to hold the summaries for the parameters
+  summary     <- NULL
+  summary$pi  <- apply(pi.draws, 2, mean)     # Expected value of mix. prop.
+  summary$l   <- apply(lambda.draws, 2, mean) # Expected value of mean
+  summary$C   <- C.matrix / (N.Sims-burnin)   # Convert C.matrix to probs
+  summary$NLL <- NLL
+  
+  # Object to hold the credible intervals for the parameters
+  cred.interv     <- NULL
+  cred.interv$pi  <- apply(pi.draws, 2, quantile, prob=c(0.025, 0.5, 0.975))
+  cred.interv$l   <- apply(lambda.draws, 2, quantile, prob=c(0.025, 0.5, 0.975))
+  
+  return(list(dat=dat, draws=draws, summary=summary, cred.interv=cred.interv))
 }
+
 
 # Compute the responsibilities
 compute.resp <- function(X, pdf.w, K, Poisson, pi.cur, logl){
   if (logl){
-    for (k in 1:K) # Calculate the PDF of each cluster for each data point
+    for (k in 1:K){ # Calculate the PDF of each cluster for each data point
       pdf.w[,k] <- log(pi.cur[k]) + dpois(X, lambda=Poisson$l[k], log=TRUE)
-    post.resp   <-  pdf.w - apply(pdf.w,1,logSumExp) # Normalize the log probability
-    post.resp   <- apply(post.resp, 2, exp) # Eponentiate to get actual probabilities
+    }
+    # Calculate probabilities using the logSumExp trick for numerical stability
+    Z           <- apply(pdf.w, 1, logSumExp)
+    post.resp   <- pdf.w - Z
+    post.resp   <- apply(post.resp, 2, exp)   # Exponentiate to get actual probabilities
+    NLL         <- -sum(Z)                    # Evaluate the NLL
   }else{
-    for (k in 1:K) # Calculate the PDF of each cluster for each data point
+    for (k in 1:K){ # Calculate the PDF of each cluster for each data point
       pdf.w[,k] <- pi.cur[k] * dpois(X, lambda=Poisson$l[k])
-    post.resp   <- pdf.w / rowSums(pdf.w) # Get responsibilites by normalizarion
+    }
+    Z           <- rowSums(pdf.w)             # Normalization constant
+    post.resp   <- pdf.w / Z                  # Get responsibilites by normalization
+    NLL         <- -sum(log(Z))               # Evaluate the NLL
   }
-  return(post.resp)
+  return(list(post.resp=post.resp, NLL=NLL))
 }
+
 # Update the mixture components 
 c.n.update <- function(N, K, post.resp){
   c.i.draw <- matrix(0, nrow=N, ncol=K)
@@ -64,17 +137,19 @@ c.n.update <- function(N, K, post.resp){
   }
   return(c.i.draw)
 }
+
 # Update the mixing proportions
 pi.update <- function(dir.a, N.k){
   a.n <- dir.a + N.k
   return(as.vector(rdirichlet(n=1, alpha=a.n))) # Sample from Dirichlet
 }
+
 # Update the posterior mean
 lambda.update <- function(K, Poisson, N.k, x.k.bar){
   lambda.posterior <- vector(length=K)
   for (k in 1:K){
-    alpha.n   <- Poisson$Gamma$a + N.k[k] * x.k.bar[k]
-    beta.n    <- Poisson$Gamma$b + N.k[k]
+    alpha.n   <- Poisson$Gamma$shape.0 + N.k[k] * x.k.bar[k]
+    beta.n    <- Poisson$Gamma$rate.0 + N.k[k]
     lambda.posterior[k] <- rgamma(1, shape=alpha.n, rate=beta.n)
   }
   return(lambda.posterior)
