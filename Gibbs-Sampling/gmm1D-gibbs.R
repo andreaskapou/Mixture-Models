@@ -18,7 +18,7 @@ gmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params, logl=TRUE){
   pi.draws      <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Mixing Proportions
   
   ##===============================================
-  # If 'Normal' not defined initialize parameters #
+  # If 'params' not defined initialize parameters #
   ##===============================================
   if (missing(params)){
     Normal          <- list()                       # Create Normal object

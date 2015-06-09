@@ -100,13 +100,12 @@ plot(tau.draws)
 pi.draws <- mcmc(gibbs$draws$pi)
 plot(pi.draws)
 
-combinedchains = mcmc.list(mcmc(gibbs$draws$tau), mcmc(gibbs.kmeans$draws$tau))
+combinedchains = mcmc.list(mcmc(gibbs$draws$mu), mcmc(gibbs.kmeans$draws$mu))
 plot(combinedchains)
 gelman.diag(combinedchains)
 gelman.plot(combinedchains)
 
 NLL <- mcmc(gibbs$summary$NLL)
 traceplot(NLL)
-
 
 plotMixAutoc(gibbs)
