@@ -56,8 +56,8 @@ gmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params, logl=TRUE){
     # Calculate component counts of each cluster
     N.k         <- colSums(C.n)
     # Update mixing proportions using new cluster component counts
-    pi.cur      <- pi.update(dir.a, N.k) 
-    for (k in 1:K){ # 
+    pi.cur      <- pi.update(dir.a, N.k)
+    for (k in 1:K){
       if (N.k[k] == 0){ # If there are no objects in the cluster
         x.k.bar[k]  <- 0
         ssd.k[k]    <- 0
@@ -76,6 +76,7 @@ gmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params, logl=TRUE){
     #   Order all the values according to the mean parameter 'mu' #
     ##=============================================================
     Order       <- order(Normal$mu)
+    C.n         <- C.n[, Order]
     pi.cur      <- pi.cur[Order]
     Normal$mu   <- Normal$mu[Order]
     Normal$Tau  <- Normal$Tau[Order]

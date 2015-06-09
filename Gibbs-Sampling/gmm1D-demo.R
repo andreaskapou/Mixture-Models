@@ -16,7 +16,7 @@ set.seed(1)
 ##=============================================
 K           <- 3      # Number of clusters
 N           <- 500    # Number of objects
-X   <- gen.gaussian(N=N, K=K, pi.c=c(.4,.3,.3), mus=c(0,4,8), stds=c(1,1,1))
+X   <- gen.gaussian(N=N, K=K, pi.c=c(.4,.3,.3), mus=c(0,2,5), stds=c(1,1,1))
 
 ##=========================
 # Initialize parameters   #
@@ -92,6 +92,7 @@ lines(gibbs$draws$pi[,3], lwd=2, col="darkgreen")
 ##===========================================
 mu.draws <- mcmc(gibbs$draws$mu)
 plot(mu.draws)
+HPDinterval(mu.draws, 0.95)
 
 tau.draws <- mcmc(gibbs$draws$tau)
 plot(tau.draws)
