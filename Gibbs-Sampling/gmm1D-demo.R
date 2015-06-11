@@ -15,8 +15,8 @@ set.seed(12345)
 ##=============================================
 # Initialize main variables and generate data #
 ##=============================================
-K           <- 3      # Number of clusters
-N           <- 1000   # Number of objects
+K   <- 3      # Number of clusters
+N   <- 1000   # Number of objects
 X   <- gen.gaussian(N=N, K=K, pi.c=c(.4,.3,.3), mus=c(0,5,10), stds=c(1,2,2))
 
 ##=========================
@@ -109,11 +109,11 @@ plotMixTrace(gibbs)
 # for plotting and generate summary statistics          #
 ##=======================================================
 mu.draws <- mcmc(gibbs$draws$mu)
-plot(mu.draws)
+plot(mu.draws, main="Mean mu")
 HPDinterval(mu.draws)
 
 NLL <- mcmc(gibbs$summary$NLL)
-traceplot(NLL)
+traceplot(NLL, main="NLL trace plot")
 
 ##=================================================
 # Use Gelman convergence diagnostic method. For   #
@@ -127,7 +127,6 @@ if ((gibbs$dat$N.Sims - gibbs$dat$burnin) == (gibbs.kmeans$dat$N.Sims - gibbs.km
 }else{
   message("The MCMC chains have different length!")
 }
-
 
 
 ##===========================================================
@@ -146,21 +145,21 @@ aic.relabel <- aic(mcmc = mcmc.out, constraint=2)
 aic.mcmc    <- permute.mcmc(mcmc.out, aic.relabel$permutations)[[1]]
 
 aic.pi  <- mcmc(aic.mcmc[,,1])
-plot(aic.pi)
+plot(aic.pi, main="AIC: Mix. prop. pi")
 aic.mu  <- mcmc(aic.mcmc[,,2])
-plot(aic.mu)
+plot(aic.mu, main="AIC: Mean mu")
 aic.tau <- mcmc(aic.mcmc[,,3])
-plot(aic.tau)
+plot(aic.tau, main="AIC: Precision tau")
 
 if (stephens){
   ## 2. Stephens' algorithm using KL divergence
-  ste.KL    <- stephens(gibbs$draws$PR)
+  ste.KL    <- stephens(gibbs$summary$PR)
   KL.mcmc   <- permute.mcmc(mcmc.out,ste.KL$permutations)[[1]]
   
   KL.pi <- mcmc(KL.mcmc[,,1])
-  plot(KL.pi)
+  plot(KL.pi, main="KL: Mix. prop. pi")
   KL.mu <- mcmc(KL.mcmc[,,2])
-  plot(KL.pi)
+  plot(KL.mu, main="KL: Mean mu")
   KL.tau <- mcmc(KL.mcmc[,,3])
-  plot(KL.tau)
+  plot(KL.tau, main="KL: Precision tau")
 }
