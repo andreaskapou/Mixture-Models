@@ -1,4 +1,5 @@
-pmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params, logl=TRUE){
+pmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params,
+                         ord.constr=FALSE, stephens=FALSE, logl=TRUE){
   ##================================================================
   # Function which uses Gibbs sampling so as to find the posterior #
   # of the Hierarchical Dirichlet Finite Mixture Model with        #
@@ -14,6 +15,8 @@ pmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params, logl=TRUE){
   x.k.bar       <- vector(length=K)           # Sample mean for each cluster k 
   lambda.draws  <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Mean of each Poisson
   pi.draws      <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Mixing Proportions
+  if (stephens) # Use Stephens algorithm for relabelling MCMC outputs
+    postRespArr   <- array(0, dim=c(N.Sims-burnin, N, K)) # Post resp for each MCMC run
   
   ##===============================================
   # If 'params' not defined initialize parameters #
@@ -27,13 +30,15 @@ pmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params, logl=TRUE){
     Poisson$l     <- as.vector(cl$centers)        # Poisson mean for each cluster
     Poisson$Gamma <- list(shape.0=1, rate.0=1)    # Initialize Gamma hyperparameters
     
-    ##=============================================================
-    # Ordering constraint:                                        #
-    #   Order all the values according to the mean parameter 'mu' #
-    ##=============================================================
-    Order       <- order(Poisson$l)
-    pi.cur      <- pi.cur[Order]
-    Poisson$l   <- Poisson$l[Order]
+    if (ord.constr){
+      ##=============================================================
+      # Ordering constraint:                                        #
+      #   Order all the values according to the mean parameter 'mu' #
+      ##=============================================================
+      Order       <- order(Poisson$l)
+      pi.cur      <- pi.cur[Order]
+      Poisson$l   <- Poisson$l[Order]
+    }
   }else{
     Poisson     <- params$Poisson
     pi.cur      <- params$pi.cur
@@ -60,14 +65,16 @@ pmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params, logl=TRUE){
     # Update posterior mean
     Poisson$l   <- lambda.update(K, Poisson, N.k, x.k.bar)
 
-    ##=============================================================
-    # Ordering constraint:                                        #
-    #   Order all the values according to the mean parameter 'mu' #
-    ##=============================================================
-    Order       <- order(Poisson$l)
-    C.n         <- C.n[, Order]
-    pi.cur      <- pi.cur[Order]
-    Poisson$l   <- Poisson$l[Order]
+    if (ord.constr){
+      ##=============================================================
+      # Ordering constraint:                                        #
+      #   Order all the values according to the mean parameter 'mu' #
+      ##=============================================================
+      Order       <- order(Poisson$l)
+      C.n         <- C.n[, Order]
+      pi.cur      <- pi.cur[Order]
+      Poisson$l   <- Poisson$l[Order]
+    }
     
     # Keep only the simulations after the burned in period has passed
     if (t > burnin){
@@ -75,6 +82,8 @@ pmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params, logl=TRUE){
       C.matrix                  <- C.matrix + C.n
       pi.draws[t - burnin,]     <- pi.cur
       lambda.draws[t - burnin,] <- Poisson$l
+      if (stephens) # Use Stephens algorithm for relabelling MCMC outputs
+        postRespArr[t-burnin, , ] <- post.resp
     }
   }
   
@@ -97,6 +106,8 @@ pmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params, logl=TRUE){
   summary$l   <- apply(lambda.draws, 2, mean) # Expected value of mean
   summary$C   <- C.matrix / (N.Sims-burnin)   # Convert C.matrix to probs
   summary$NLL <- NLL
+  if (stephens) # Use Stephens algorithm for relabelling MCMC outputs
+    summary$PR <- postRespArr
   
   # Object to hold the credible intervals for the parameters
   cred.interv     <- NULL
