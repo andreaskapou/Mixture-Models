@@ -18,7 +18,7 @@ set.seed(12345)         # Set seed for reproducible results
 ##=============================================
 N       <- 500          # Number of data points
 K       <- 3            # Number of clusters
-X       <- gen.poisson(K=K, pi.c=c(.3,.2,.5), lambdas=c(7,15,28))
+X       <- gen.poisson(K=K, pi.c=c(.3,.2,.5), lambdas=c(4,10,15))
 
 epsilon <- 1e-10        # Convergence paramater for EM
 maxIter <- 1000         # Maximum number of iterations for EM
