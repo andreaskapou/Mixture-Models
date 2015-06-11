@@ -6,17 +6,18 @@ cur.dir <- dirname(parent.frame(2)$ofile)
 setwd(cur.dir)
 library(MCMCpack)
 library(coda)
+library(label.switching)
 library(R.utils)
 source('gmm1D-gibbs.R')
 sourceDirectory("../lib", modifiedOnly=FALSE)
-set.seed(1)
+set.seed(12345)
 
 ##=============================================
 # Initialize main variables and generate data #
 ##=============================================
 K           <- 3      # Number of clusters
-N           <- 500    # Number of objects
-X   <- gen.gaussian(N=N, K=K, pi.c=c(.4,.3,.3), mus=c(0,2,5), stds=c(1,1,1))
+N           <- 1000   # Number of objects
+X   <- gen.gaussian(N=N, K=K, pi.c=c(.4,.3,.3), mus=c(0,5,10), stds=c(1,2,2))
 
 ##=========================
 # Initialize parameters   #
@@ -35,6 +36,8 @@ Normal$Norm     <- list(mu.0=mean(X), tau.0=1/sd(X))  # Normal hyperparameters
 Normal$Gamma    <- list(shape.0=1, rate.0=1)          # Gamma hyperparameters
 
 params          <- list(Normal=Normal, pi.cur=pi.cur, dir.a=dir.a)
+ord.constr      <- FALSE
+stephens        <- TRUE
 
 ##=======================================================
 # Do inference using Gibbs sampling, explicitly giving  #
@@ -45,13 +48,21 @@ gibbs <- gmm1D.gibbs(X=X,
                      N.Sims=N.Sims, 
                      burnin=burnin, 
                      params=params,
+                     ord.constr=ord.constr,
+                     stephens=stephens, 
                      logl=TRUE)
 
 ##=================================================================
 # Do inference using Gibbs sampling, without initial parameters,  #
 # the method will initilize parameters using k-means              #
 ##=================================================================
-gibbs.kmeans <- gmm1D.gibbs(X=X, K=K)
+gibbs.kmeans <- gmm1D.gibbs(X=X, 
+                            K=K, 
+                            N.Sims=N.Sims, 
+                            burnin=burnin, 
+                            ord.constr=ord.constr,
+                            stephens=stephens)
+
 
 
 ##=====================================
@@ -70,7 +81,6 @@ for (k in 1:K){
 }
 lines(x,mixture,col="red",lwd=2)
 
-
 ##===========================================
 # Example of using cumsum function to plot  #
 # the running mean of the MCMC samples.     #
@@ -84,28 +94,73 @@ plot(gibbs$draws$pi[,1], type="l", xlab="time", ylab="x", lwd=2, col="steelblue"
 lines(gibbs$draws$pi[,2], lwd=2, col="orange3")
 lines(gibbs$draws$pi[,3], lwd=2, col="darkgreen")
 
+##===================================================
+# Plot autocorrelation functions using ACF method.  #
+##===================================================
+plotMixAutocorr(gibbs)
 
-##===========================================
-# Create mcmc objects for the MCMC draws    #
-# and use the coda for plotting and in      #
-# general summary statistics                #
-##===========================================
+##===================================================
+# Plot traces of sampled parameters during MCMC.    #
+##===================================================
+plotMixTrace(gibbs)
+
+##=======================================================
+# Create mcmc objects for the MCMC draws and use 'coda' #  
+# for plotting and generate summary statistics          #
+##=======================================================
 mu.draws <- mcmc(gibbs$draws$mu)
 plot(mu.draws)
-HPDinterval(mu.draws, 0.95)
-
-tau.draws <- mcmc(gibbs$draws$tau)
-plot(tau.draws)
-
-pi.draws <- mcmc(gibbs$draws$pi)
-plot(pi.draws)
-
-combinedchains = mcmc.list(mcmc(gibbs$draws$mu), mcmc(gibbs.kmeans$draws$mu))
-plot(combinedchains)
-gelman.diag(combinedchains)
-gelman.plot(combinedchains)
+HPDinterval(mu.draws)
 
 NLL <- mcmc(gibbs$summary$NLL)
 traceplot(NLL)
 
-plotMixAutoc(gibbs)
+##=================================================
+# Use Gelman convergence diagnostic method. For   #
+# this method we need more than one MCMC chains.  #      
+##=================================================
+if ((gibbs$dat$N.Sims - gibbs$dat$burnin) == (gibbs.kmeans$dat$N.Sims - gibbs.kmeans$dat$burnin)){
+  combinedchains = mcmc.list(mcmc(gibbs$draws$mu), mcmc(gibbs.kmeans$draws$mu))
+  plot(combinedchains)
+  gelman.diag(combinedchains)
+  gelman.plot(combinedchains)
+}else{
+  message("The MCMC chains have different length!")
+}
+
+
+
+##===========================================================
+# Use 'label.switching' package to relabel the MCMC output  #
+# due to identifiability issues when using Gibbs sampling   #
+# for mixture models.                                       #
+##===========================================================
+mcmc.out <- array(0, dim=c((gibbs$dat$N.Sims-gibbs$dat$burnin), gibbs$dat$K, 3))
+mcmc.out[,,1] <- gibbs$draws$pi
+mcmc.out[,,2] <- gibbs$draws$mu
+mcmc.out[,,3] <- gibbs$draws$tau
+
+
+## 1. Artificial Identifiability Constraints method
+aic.relabel <- aic(mcmc = mcmc.out, constraint=2)
+aic.mcmc    <- permute.mcmc(mcmc.out, aic.relabel$permutations)[[1]]
+
+aic.pi  <- mcmc(aic.mcmc[,,1])
+plot(aic.pi)
+aic.mu  <- mcmc(aic.mcmc[,,2])
+plot(aic.mu)
+aic.tau <- mcmc(aic.mcmc[,,3])
+plot(aic.tau)
+
+if (stephens){
+  ## 2. Stephens' algorithm using KL divergence
+  ste.KL    <- stephens(gibbs$draws$PR)
+  KL.mcmc   <- permute.mcmc(mcmc.out,ste.KL$permutations)[[1]]
+  
+  KL.pi <- mcmc(KL.mcmc[,,1])
+  plot(KL.pi)
+  KL.mu <- mcmc(KL.mcmc[,,2])
+  plot(KL.pi)
+  KL.tau <- mcmc(KL.mcmc[,,3])
+  plot(KL.tau)
+}
