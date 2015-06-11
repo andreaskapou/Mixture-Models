@@ -31,9 +31,9 @@ pmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params, logl=TRUE){
     # Ordering constraint:                                        #
     #   Order all the values according to the mean parameter 'mu' #
     ##=============================================================
-    #Order       <- order(Poisson$l)
-    #pi.cur      <- pi.cur[Order]
-    #Poisson$l   <- Poisson$l[Order]
+    Order       <- order(Poisson$l)
+    pi.cur      <- pi.cur[Order]
+    Poisson$l   <- Poisson$l[Order]
   }else{
     Poisson     <- params$Poisson
     pi.cur      <- params$pi.cur
@@ -64,9 +64,10 @@ pmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params, logl=TRUE){
     # Ordering constraint:                                        #
     #   Order all the values according to the mean parameter 'mu' #
     ##=============================================================
-    #Order       <- order(Poisson$l)
-    #pi.cur      <- pi.cur[Order]
-    #Poisson$l   <- Poisson$l[Order]
+    Order       <- order(Poisson$l)
+    C.n         <- C.n[, Order]
+    pi.cur      <- pi.cur[Order]
+    Poisson$l   <- Poisson$l[Order]
     
     # Keep only the simulations after the burned in period has passed
     if (t > burnin){
