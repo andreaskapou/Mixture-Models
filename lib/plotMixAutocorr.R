@@ -1,5 +1,5 @@
-plotMixAutoc <- function(mcmc.obj, nams){
-  ## --- Plot autocorrelation functions
+plotMixAutocorr <- function(mcmc.obj, nams){
+  # Plot autocorrelation functions
   K     <- mcmc.obj$dat$K           # Number of clusters
   pars  <- length(mcmc.obj$draws)   # Number of parameters
   if (missing(nams)){
