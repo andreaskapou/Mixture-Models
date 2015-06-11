@@ -1,4 +1,5 @@
-gmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params, logl=TRUE){
+gmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params, 
+                            ord.constr=FALSE, stephens=FALSE, logl=TRUE){
   ##===================================================================
   # Function which uses Gibbs sampling so as to find the posterior    #
   # of the Hierarchical Dirichlet Finite Mixture Model with           #
@@ -16,6 +17,8 @@ gmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params, logl=TRUE){
   mu.draws      <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Mean of each Gaussian
   tau.draws     <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Precision of each Gaussian
   pi.draws      <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Mixing Proportions
+  if (stephens) # Use Stephens algorithm for relabelling MCMC outputs
+    postRespArr   <- array(0, dim=c(N.Sims-burnin, N, K)) # Post resp for each MCMC run
   
   ##===============================================
   # If 'params' not defined initialize parameters #
@@ -33,14 +36,16 @@ gmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params, logl=TRUE){
     Normal$Norm     <- list(mu.0=mean(X), tau.0=1/sd(X))  # Normal hyperparameters
     Normal$Gamma    <- list(shape.0=1, rate.0=1)          # Gamma hyperparameters
     
-    ##=============================================================
-    # Ordering constraint:                                        #
-    #   Order all the values according to the mean parameter 'mu' #
-    ##=============================================================
-    Order       <- order(Normal$mu)
-    pi.cur      <- pi.cur[Order]
-    Normal$mu   <- Normal$mu[Order]
-    Normal$Tau  <- Normal$Tau[Order]
+    if (ord.constr){
+      ##=============================================================
+      # Ordering constraint:                                        #
+      #   Order all the values according to the mean parameter 'mu' #
+      ##=============================================================
+      Order       <- order(Normal$mu)
+      pi.cur      <- pi.cur[Order]
+      Normal$mu   <- Normal$mu[Order]
+      Normal$Tau  <- Normal$Tau[Order]
+    }
   } else{
     Normal          <- params$Normal
     pi.cur          <- params$pi.cur
@@ -71,15 +76,17 @@ gmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params, logl=TRUE){
     # Update posterior mean
     Normal$mu  <- mu.update(K, Normal, N.k, x.k.bar)
     
-    ##=============================================================
-    # Ordering constraint:                                        #
-    #   Order all the values according to the mean parameter 'mu' #
-    ##=============================================================
-    Order       <- order(Normal$mu)
-    C.n         <- C.n[, Order]
-    pi.cur      <- pi.cur[Order]
-    Normal$mu   <- Normal$mu[Order]
-    Normal$Tau  <- Normal$Tau[Order]
+    if (ord.constr){
+      ##=============================================================
+      # Ordering constraint:                                        #
+      #   Order all the values according to the mean parameter 'mu' #
+      ##=============================================================
+      Order       <- order(Normal$mu)
+      C.n         <- C.n[, Order]
+      pi.cur      <- pi.cur[Order]
+      Normal$mu   <- Normal$mu[Order]
+      Normal$Tau  <- Normal$Tau[Order]
+    }
     
     # Keep only the simulations after the burn-in period has passed
     if (t > burnin){
@@ -88,6 +95,8 @@ gmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params, logl=TRUE){
       pi.draws[t - burnin,]     <- pi.cur
       mu.draws[t - burnin,]     <- Normal$mu
       tau.draws[t - burnin,]    <- Normal$Tau
+      if (stephens) # Use Stephens algorithm for relabelling MCMC outputs
+        postRespArr[t-burnin, , ] <- post.resp
     }
   }
   
@@ -112,6 +121,8 @@ gmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params, logl=TRUE){
   summary$tau <- apply(tau.draws, 2, mean)  # Expected value of variance
   summary$C   <- C.matrix / (N.Sims-burnin) # Convert C.matrix to probs
   summary$NLL <- NLL
+  if (stephens) # Use Stephens algorithm for relabelling MCMC outputs
+    summary$PR    <- postRespArr
   
   # Object to hold the credible intervals for the parameters
   cred.interv     <- NULL
