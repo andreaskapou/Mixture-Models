@@ -9,14 +9,14 @@ library(coda)
 library(R.utils)
 source('pmm1D-gibbs.R')
 sourceDirectory("../lib", modifiedOnly=FALSE)
-set.seed(1)
+set.seed(1235)
 
 ##=============================================
 # Initialize main variables and generate data #
 ##=============================================
 K           <- 3      # Number of clusters
 N           <- 500    # Number of objects
-X   <- gen.poisson(N=N, K=K, pi.c=c(.3,.2,.5), lambdas=c(7,10,15))
+X   <- gen.poisson(N=N, K=K, pi.c=c(.3,.2,.5), lambdas=c(4,10,15))
 
 ##=========================
 # Initialize variables    #
@@ -29,7 +29,7 @@ pi.cur        <- rep(1/K, K)  # Initialize mixing proportions for each cluster
 
 Poisson       <- list()       # Create an object of type Poisson
 Poisson$l     <- c(2,4,6)     # Initialize means for each cluster
-Poisson$Gamma <- list(shape.0=1, rate.0=1)  # Gamma hyperparameters
+Poisson$Gamma <- list(shape.0=1, rate.0=0.01)  # Gamma hyperparameters
 
 params        <- list(Poisson=Poisson, pi.cur=pi.cur, dir.a=dir.a)
 
