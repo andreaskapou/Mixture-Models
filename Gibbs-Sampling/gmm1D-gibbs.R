@@ -13,7 +13,7 @@ gmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params,
   C.matrix      <- matrix(0, nrow=N, ncol=K)  # Total Mixture components
   NLL           <- vector(mode="numeric")     # Hold NLL for all MCMC iterations
   x.k.bar       <- vector(length=K)           # Sample mean for each cluster k 
-  ssd.k         <- vector(length=K)           # Sum of square differences on each cluster k
+  ssd.k         <- vector(length=K)           # Sum of square differences on cluster k
   mu.draws      <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Mean of each Gaussian
   tau.draws     <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Precision of each Gaussian
   pi.draws      <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Mixing Proportions
@@ -122,7 +122,7 @@ gmm1D.gibbs <-  function(X, K=2, N.Sims=10000, burnin=5000, params,
   summary$C   <- C.matrix / (N.Sims-burnin) # Convert C.matrix to probs
   summary$NLL <- NLL
   if (stephens) # Use Stephens algorithm for relabelling MCMC outputs
-    summary$PR    <- postRespArr
+    summary$PR <- postRespArr
   
   # Object to hold the credible intervals for the parameters
   cred.interv     <- NULL
