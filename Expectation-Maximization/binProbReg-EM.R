@@ -55,7 +55,7 @@ binProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug=FA
                          fn=sumBinPRL,
                          gr=sumDerBinPRL, X, post.resp[,k],
                          method="CG",
-                         control = list(fnscale=-1, maxit = 5) )$par
+                         control = list(fnscale=-1, maxit = 20) )$par
     }
 
     
