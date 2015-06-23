@@ -18,7 +18,7 @@ set.seed(12345)         # Set seed for reproducible results
 ##=============================================
 N       <- 500          # Number of data points
 K       <- 3            # Number of clusters
-X       <- gen.poisson(K=K, pi.c=c(.3,.2,.5), lambdas=c(4,10,15))
+X       <- gen.poisson(N=N, K=K, pi.c=c(.3,.2,.5), lambdas=c(4,10,18))
 
 epsilon <- 1e-10        # Convergence paramater for EM
 maxIter <- 1000         # Maximum number of iterations for EM
@@ -68,10 +68,12 @@ cat("\n\nPMM-EM (with given parameters):\n")
 cat("Total iterations:", length(fit.pmm$all.NLL), "\n")
 cat("Mean:", fit.pmm$lambdas, "\n")
 cat("Mixing proportions:", fit.pmm$pi.c, "\n")
-cat("Best NLL:", fit.pmm$NLL, "\n\n")
+cat("Best NLL:", fit.pmm$NLL, "\n")
+cat("BIC:", fit.pmm$BIC, "\n\n")
 
 cat("PMM-EM (with parameters initialized by k-means):\n")
 cat("Total iterations:", length(fit.pmm.kmeans$all.NLL), "\n")
 cat("Mean:", fit.pmm.kmeans$lambdas, "\n")
 cat("Mixing proportions:", fit.pmm.kmeans$pi.c, "\n")
-cat("Best NLL:", fit.pmm.kmeans$NLL, "\n\n")
+cat("Best NLL:", fit.pmm.kmeans$NLL, "\n")
+cat("BIC:", fit.pmm.kmeans$BIC, "\n\n")
