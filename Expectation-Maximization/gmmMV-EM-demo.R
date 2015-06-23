@@ -56,7 +56,7 @@ points(faithful)
 gm <- mvnormalmixEM(X, k=K)
 
 
-cat("My GMM-EM (with parameters initialized by k-means):\n")
+cat("\n\nMy GMM-EM (with parameters initialized by k-means):\n")
 cat("Total iterations:", length(fit.gmmMV.kmeans$all.NLL), "\n")
 cat("Mean:\n")
 cat("     Cluster 1:", fit.gmmMV.kmeans$mu[1,], "\n")
@@ -67,7 +67,8 @@ cat("               ", fit.gmmMV.kmeans$Sigma[[1]][2,], "\n")
 cat("     Cluster 2:", fit.gmmMV.kmeans$Sigma[[2]][1,], "\n")
 cat("               ", fit.gmmMV.kmeans$Sigma[[2]][2,], "\n")
 cat("Mixing proportions:", fit.gmmMV.kmeans$pi.c, "\n")
-cat("Best NLL:", fit.gmmMV.kmeans$NLL, "\n\n")
+cat("Best NLL:", fit.gmmMV.kmeans$NLL, "\n")
+cat("BIC:", fit.gmmMV.kmeans$BIC, "\n\n")
 
 
 cat("Mixtools package GMM-EM:\n")
