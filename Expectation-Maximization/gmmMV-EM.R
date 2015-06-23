@@ -11,6 +11,7 @@
 gmmMV.EM <- function(X, K=2, theta, epsilon=1e-10, maxIter=1000, isLog=TRUE, isDebug=FALSE){
   
   N         <- NROW(X)                          # Length of the dataset
+  D         <- NCOL(X)                          # Dimension of the dataset
   post.resp <- matrix(0, nrow=N, ncol=K)        # Hold responsibilities
   pdf.w     <- matrix(0, nrow=N, ncol=K)        # Hold weighted PDFs
   all.NLL   <- vector(mode="numeric")           # Hold NLL for all EM iterations
@@ -80,14 +81,16 @@ gmmMV.EM <- function(X, K=2, theta, epsilon=1e-10, maxIter=1000, isLog=TRUE, isD
     }
     
     
-    if (isDebug){
-      cat("i:", i, "\n")
-      cat("NLL:", NLL, "\n")
-    }
-    
     NLL.Diff  <- prevNLL - NLL                  # Compute NLL difference after ith iteration
     if (NLL.Diff < 0){
-      stop("Negative log likelihood increases - Something is wrong!")
+      message("Negative log likelihood increases - Something is wrong!\n")
+      message("Finishing EM...!")
+      break
+    }
+    if (isDebug){
+      cat("i:", i, "\t")
+      cat("NLL:", NLL, "\t\t")
+      cat("NLL-diff:", NLL.Diff, "\n")
     }
     all.NLL   <- c(all.NLL, NLL)                # Keep all NLL in a vector  
     if (NLL.Diff < epsilon){                    # Check for convergence.
@@ -100,5 +103,45 @@ gmmMV.EM <- function(X, K=2, theta, epsilon=1e-10, maxIter=1000, isLog=TRUE, isD
     message("Warning: EM did not converge with given maximum iterations!\n\n")
   }
   
-  return(list(mu=mu, Sigma=Sigma, pi.c=pi.c, NLL=NLL, post.resp=post.resp, all.NLL=all.NLL))
+  # Add names to the estimated variables for clarity
+  names(pi.c)   <- paste("Clust", 1:K)
+  rownames(mu)  <- paste("Clust", 1:K)
+  names(Sigma)  <- paste("Clust", 1:K)
+  
+  # Cluster labels of each data point. Each data point is assigned to the cluster
+  # with the highest posterior responsibility.
+  labels <- unlist(apply(post.resp, 1, function(x) which(x == max(x, na.rm = TRUE))[1]))
+  
+  ##===========================
+  # Perform model selection   #
+  ##===========================
+  numParams <- (K-1) + K*D + K*(D*(D+1)/2)  # Total number of parameters i.e. pi.c + mu + S
+  
+  BIC <- 2*NLL + numParams*log(N) # BIC = -2*ln(L) + params*ln(N)
+  AIC <- 2*NLL + 2*numParams      # AIC = -2*ln(L) + 2*params
+  
+  entropy <- -sum(post.resp * log(post.resp), na.rm=TRUE)
+  ICL <- BIC + entropy            # Integrated Complete Likelihood criterion
+  
+  ##=========================
+  # Create a GMM-MV object  #
+  ##=========================
+  results           <- list()
+  results$X         <- X
+  results$K         <- K
+  results$N         <- N
+  results$D         <- D
+  results$postResp  <- post.resp
+  results$labels    <- labels
+  results$pi.c      <- pi.c
+  results$mu        <- mu
+  results$Sigma     <- Sigma
+  results$NLL       <- NLL
+  results$all.NLL   <- all.NLL
+  results$BIC       <- BIC
+  results$AIC       <- AIC
+  results$ICL       <- ICL
+  
+  class(results) <- "GMM-MV"
+  return(results)
 }
