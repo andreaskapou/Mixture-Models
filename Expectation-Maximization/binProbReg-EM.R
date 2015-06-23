@@ -100,9 +100,9 @@ binProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug=FA
   entropy <- -sum(post.resp * log(post.resp), na.rm=TRUE)
   ICL <- BIC + entropy            # Integrated Complete Likelihood criterion
   
-  ##=======================
-  # Create a B2PR object  #
-  ##=======================
+  ##======================
+  # Create a BPR object  #
+  ##======================
   results           <- list()
   results$X         <- X
   results$K         <- K
@@ -117,6 +117,6 @@ binProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug=FA
   results$AIC       <- AIC
   results$ICL       <- ICL
   
-  class(results) <- "B2PR"
+  class(results) <- "BPR"
   return(results)
 }
