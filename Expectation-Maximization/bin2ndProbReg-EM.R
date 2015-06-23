@@ -59,16 +59,18 @@ bin2ndProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug
                          method="CG",
                          control = list(fnscale=-1, maxit = 5) )$par
     }
-    
-    
-    if (isDebug){
-      cat("i:", t, "\n")
-      cat("NLL:", NLL, "\n")
-    }
+
     
     NLL.Diff  <- prevNLL - NLL                  # Compute NLL difference after ith iteration
     if (NLL.Diff < 0){
-      stop("Negative log likelihood increases - Something is wrong!")
+      message("Negative log likelihood increases - Something is wrong!\n")
+      message("Finishing EM...!")
+      break
+    }
+    if (isDebug){
+      cat("i:", i, "\t")
+      cat("NLL:", NLL, "\t\t")
+      cat("NLL-diff:", NLL.Diff, "\n")
     }
     all.NLL   <- c(all.NLL, NLL)                # Keep all NLL in a vector  
     if (NLL.Diff < epsilon){                    # Check for convergence.
@@ -81,5 +83,42 @@ bin2ndProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug
     message("Warning: EM did not converge with given maximum iterations!\n\n")
   }
   
-  return(list(theta=theta, pi.c=pi.c, NLL=NLL, post.resp=post.resp, all.NLL=all.NLL))
+  # Add names to the estimated variables for clarity
+  names(pi.c)     <- paste("Clust", 1:K)
+  colnames(theta) <- paste("Clust", 1:K)
+  
+  # Cluster labels of each data point. Each data point is assigned to the cluster
+  # with the highest posterior responsibility.
+  labels <- unlist(apply(post.resp, 1, function(x) which(x == max(x, na.rm = TRUE))[1]))
+  
+  ##===========================
+  # Perform model selection   #
+  ##===========================
+  numParams <- (K-1) + K*NROW(theta)  # Total number of parameters i.e. pi.c + theta
+  
+  BIC <- 2*NLL + numParams*log(N) # BIC = -2*ln(L) + params*ln(N)
+  AIC <- 2*NLL + 2*numParams      # AIC = -2*ln(L) + 2*params
+  
+  entropy <- -sum(post.resp * log(post.resp), na.rm=TRUE)
+  ICL <- BIC + entropy            # Integrated Complete Likelihood criterion
+  
+  ##=======================
+  # Create a B2PR object  #
+  ##=======================
+  results           <- list()
+  results$X         <- X
+  results$K         <- K
+  results$N         <- N
+  results$postResp  <- post.resp
+  results$labels    <- labels
+  results$pi.c      <- pi.c
+  results$theta     <- theta
+  results$NLL       <- NLL
+  results$all.NLL   <- all.NLL
+  results$BIC       <- BIC
+  results$AIC       <- AIC
+  results$ICL       <- ICL
+  
+  class(results) <- "B2PR"
+  return(results)
 }
