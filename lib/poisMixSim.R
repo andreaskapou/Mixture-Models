@@ -33,7 +33,7 @@ poisMixSim <- function(N=2000, libsize, separation){
   if(libsize == "A" | libsize == "equal") {
     conds <- c(1, rep(2,4), rep(3, 3))
     mean.expr <- 1640
-    s.norm <- c(0.156, 0.071, 0.248, 0.165, 0.014, 0.028, 0.206, 0.112)
+    s.norm <- c(0.112, 0.156, 0.071, 0.248, 0.165, 0.014, 0.028, 0.206)
   }else if(libsize == "B") {
     conds <- c(rep(1, 4), rep(2,2))
     mean.expr <- 1521
