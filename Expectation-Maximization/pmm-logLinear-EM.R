@@ -175,6 +175,7 @@ pmm.LL.EM <- function(X, K=2, theta, epsilon=1e-06, maxIter=1000, isDebug=FALSE)
   results$q         <- q
   results$d         <- d
   results$r         <- r
+  results$s.dot     <- s.dot
   results$postResp  <- post.resp
   results$labels    <- labels
   results$conds     <- conds
