@@ -18,7 +18,7 @@ set.seed(12345)           # Set seed for reproducible results
 # Generate the data and initialize variables  #
 ##=============================================
 N         <- 1000               # Number of objects
-sim       <- poisMixSim(N=N, libsize="A", separation="high")
+sim       <- poisMixSim(N=N, libsize="A", separation="low")
 X         <- sim$X              # Data points, Nxq matrix
 conds     <- sim$conds          # Different biological conditions
 
@@ -39,7 +39,7 @@ theta     <- list(conds=conds,
 ##=====================================================
 # Run PMM-LL-EM, explicitly giving initial parameters #
 ##=====================================================
-fit.pmmLL <- pmm.LL.EM(X=X,
+fit.pmmLL.EM <- pmm.LL.EM(X=X,
                        K=K,
                        theta=theta,
                        epsilon=epsilon,
