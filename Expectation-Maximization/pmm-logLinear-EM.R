@@ -3,7 +3,7 @@
 #' 
 #' The parameter values are initialized using 'kmeans' algorithm. 
 #' 
-pmm.LL.EM <- function(X, K=2, conds, theta, epsilon=1e-06, maxIter=1000, isDebug=FALSE){
+pmm.LL.EM <- function(X, K=2, theta, epsilon=1e-06, maxIter=1000, isDebug=FALSE){
   
   # Unwrap parameters from the 'theta' list object
   conds     <- theta$conds
