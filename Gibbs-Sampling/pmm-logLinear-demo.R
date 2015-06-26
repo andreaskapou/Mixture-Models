@@ -44,4 +44,5 @@ fit.pmmLL.gibbs <- pmm.LL.gibbs(X=X,
                                 K=K,
                                 N.Sims=N.Sims,
                                 burnin=burnin,
+                                eqProp=FALSE,
                                 params=params)
