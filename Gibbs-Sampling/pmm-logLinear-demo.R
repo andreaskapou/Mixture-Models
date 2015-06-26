@@ -8,11 +8,12 @@
 ##=============================================================
 cur.dir <- dirname(parent.frame(2)$ofile)
 setwd(cur.dir)
-source("pmm-logLinear-gibbs.R")
 library(MCMCpack)
 library(coda)
+library(label.switching)
 library(R.utils)
 library(edgeR)
+source("pmm-logLinear-gibbs.R")
 sourceDirectory("../lib", modifiedOnly=FALSE) # Source the 'lib' directory
 set.seed(12345)           # Set seed for reproducible results
 
@@ -36,9 +37,9 @@ params     <- list(conds=conds,
                    libSize=libSize,
                    libType=libType)
 
-##========================================================
-# Run PMM-LL-Gibbs, explicitly giving initial parameters #
-##========================================================
+##=======================================================
+# Run PMM-LL-Gibbs, parameters initialized by 'kmeans'  #
+##=======================================================
 fit.pmmLL.gibbs <- pmm.LL.gibbs(X=X,
                                 K=K,
                                 N.Sims=N.Sims,
