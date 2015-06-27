@@ -30,7 +30,7 @@ N.Sims    <- 10000              # Set the number of simulations
 burnin    <- 5000               # Set how many samples should be discarded
 libSize   <- TRUE               # Take library size into consideration
 libType   <- "TMM"              # Method to compute normalization factors
-# Available: "TC", "MED", "DESEQ", "TMM"
+                                # Available: "TC", "MED", "DESEQ", "TMM"
 
 # Wrap all the parameters in a list
 params     <- list(conds=conds,
