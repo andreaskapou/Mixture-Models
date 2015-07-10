@@ -22,10 +22,14 @@
 #     res     is the total log likelihood for all the regions i         #
 #                                                                       #
 ##=======================================================================
-sumBin2ndPRL <- function(theta, D, post.resp){
+sumBin2ndPRL <- function(theta, D, post.resp=NA){
   res <- 0
-  for (i in 1:length(D)){
-    res = res + bin2ndProbRegLik(theta, D[[i]], mode=1) * post.resp[i]
+  if (is.list(D)){
+    for (i in 1:length(D)){
+      res = res + bin2ndProbRegLik(theta, D[[i]], mode=1) * post.resp[i]
+    }
+  }else{
+    res = bin2ndProbRegLik(theta, D, mode=1)
   }
   return(res)
 }

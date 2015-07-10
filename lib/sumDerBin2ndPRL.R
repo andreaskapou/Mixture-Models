@@ -24,10 +24,14 @@
 #               derivatives wrt to the parameters for all the regions i #
 #                                                                       #
 ##=======================================================================
-sumDerBin2ndPRL <- function(theta, D, post.resp){
+sumDerBin2ndPRL <- function(theta, D, post.resp=NA){
   res <- c(0,0,0)
-  for (i in 1:length(D)){
-    res = res + bin2ndProbRegLik(theta, D[[i]], mode=2) * post.resp[i]
+  if (is.list(D)){
+    for (i in 1:length(D)){
+      res = res + bin2ndProbRegLik(theta, D[[i]], mode=2) * post.resp[i]
+    }
+  }else{
+    res = bin2ndProbRegLik(theta, D, mode=2)
   }
   return(res)
 }
