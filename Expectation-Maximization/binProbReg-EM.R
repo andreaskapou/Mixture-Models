@@ -4,7 +4,7 @@
 #' - ln p(X|theta) = - Sum_{N}(ln(Sum_{K}(p_k * BinProb(x_n|theta))))
 ##=================================================================================
 
-binProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug=FALSE){
+binProbReg.EM <- function(X, K=2, deg=3, params, epsilon=1e-4, maxIter=1000, isDebug=FALSE){
   
   N         <- length(X)                        # Length of the dataset
   post.resp <- matrix(0, nrow=N, ncol=K)        # Hold responsibilities
@@ -12,8 +12,25 @@ binProbReg.EM <- function(X, K=2, params, epsilon=1e-4, maxIter=1000, isDebug=FA
   all.NLL   <- vector(mode="numeric")           # Hold NLL for all EM iterations
   NLL       <- 1e+40                            # Initialize Negative Log Likelihood
   
-  pi.c      <- params$pi.c                      # Mixing proportions
-  theta     <- params$theta                     # Polynomial coefficients
+  if (missing(params)){
+    thetas <- matrix(0, nrow=N, ncol=deg+1)
+    for (i in 1:N){
+      # Get initial values for coefficients using Conjugate Gradients for each data point
+      thetas[i,] <- optim(par=rep(.2, deg+1),
+                          fn=sumBinPRL,
+                          gr=sumDerBinPRL, X[[i]],
+                          method="CG",
+                          control = list(fnscale=-1, maxit = 50) )$par
+    }
+    cl      <- kmeans(thetas, K, nstart = 25)   # Use Kmeans with random starts
+    C.n     <- cl$cluster                       # Get the mixture components
+    theta   <- t(cl$centers)                    # Mean for each cluster
+    pi.c    <- as.vector(table(C.n)/N)          # Mixing proportions
+    
+  }else{
+    pi.c    <- params$pi.c                      # Mixing proportions
+    theta   <- params$theta                     # Polynomial coefficients
+  }
   
   if (isDebug){
     cat("Initial values:\n")
