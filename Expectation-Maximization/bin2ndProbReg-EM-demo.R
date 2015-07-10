@@ -38,13 +38,24 @@ params <- list(pi.c=pi.c, theta=theta)  # Wrap all the parameters in a list
 ##===========================================================
 # Run BIN.PROB.REG-EM, explicitly giving initial parameters #
 ##===========================================================
+print(date())
 fit.bin2ndProbReg <- bin2ndProbReg.EM(X=X, 
                                       K=K, 
                                       params=params, 
                                       epsilon=epsilon, 
                                       maxIter=maxIter,
                                       isDebug=TRUE)
-
+print(date())
+##===========================================================
+# Run BIN.PROB.REG-EM, initialize parameters using k-means  #
+##===========================================================
+fit.binProbReg2 <- bin2ndProbReg.EM(X=X, 
+                                    K=K, 
+                                    deg=2,
+                                    epsilon=epsilon, 
+                                    maxIter=maxIter,
+                                    isDebug=TRUE)
+print(date())
 
 ##======================================================================
 # Plot the results showing the K different functions that were learned #
