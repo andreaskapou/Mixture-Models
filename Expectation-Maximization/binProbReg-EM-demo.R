@@ -37,13 +37,24 @@ params <- list(pi.c=pi.c, theta=theta)  # Wrap all the parameters in a list
 ##===========================================================
 # Run BIN.PROB.REG-EM, explicitly giving initial parameters #
 ##===========================================================
-fit.binProbReg <- binProbReg.EM(X=X, 
-                                K=K, 
-                                params=params, 
-                                epsilon=epsilon, 
-                                maxIter=maxIter,
-                                isDebug=TRUE)
-
+print(date())
+fit.binProbReg2  <- binProbReg.EM(X=X, 
+                                  K=K, 
+                                  params=params, 
+                                  epsilon=epsilon, 
+                                  maxIter=maxIter,
+                                  isDebug=TRUE)
+print(date())
+##===========================================================
+# Run BIN.PROB.REG-EM, initialize parameters using k-means  #
+##===========================================================
+fit.binProbReg   <- binProbReg.EM(X=X, 
+                                  K=K, 
+                                  deg=deg,
+                                  epsilon=epsilon, 
+                                  maxIter=maxIter,
+                                  isDebug=TRUE)
+print(date())
 
 ##======================================================================
 # Plot the results showing the K different functions that were learned #
@@ -55,13 +66,13 @@ par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
 
 plot(X[[7]][1,], X[[7]][3,]/X[[7]][2,], col="darkgreen", pch=24, xlim=c(-1,1), 
      ylim=c(0.05,0.92), xlab="region x", ylab="methylation level")
-lines(x=xs, y=probPolynomFun(theta=fit.binProbReg$theta[,1], xs), 
+lines(x=xs, y=probPolynomFun(theta=fit.binProbReg$theta[,3], xs), 
       col="darkgreen", lwd=2)
 points(X[[245]][1,], X[[245]][3,]/X[[245]][2,], pch=23, col="red")
-lines(x=xs, y=probPolynomFun(theta=fit.binProbReg$theta[,3], xs), 
+lines(x=xs, y=probPolynomFun(theta=fit.binProbReg$theta[,2], xs), 
       col="red", lwd=2)
 points(X[[390]][1,], X[[390]][3,]/X[[390]][2,], pch=8, col="darkblue")
-lines(x=xs, y=probPolynomFun(theta=fit.binProbReg$theta[,2], xs), 
+lines(x=xs, y=probPolynomFun(theta=fit.binProbReg$theta[,1], xs), 
       col="darkblue", lwd=2)
 
 # Add legend to top right, outside plot region
