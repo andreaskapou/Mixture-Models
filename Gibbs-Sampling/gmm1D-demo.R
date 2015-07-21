@@ -109,7 +109,7 @@ plotMixTrace(gibbs)
 # for plotting and generate summary statistics          #
 ##=======================================================
 mu.draws <- mcmc(gibbs$draws$mu)
-plot(mu.draws, main="Mean mu")
+traceplot(mu.draws, main="Mean mu")
 HPDinterval(mu.draws)
 
 NLL <- mcmc(gibbs$summary$NLL)
@@ -120,7 +120,11 @@ traceplot(NLL, main="NLL trace plot")
 # this method we need more than one MCMC chains.  #      
 ##=================================================
 if ((gibbs$dat$N.Sims - gibbs$dat$burnin) == (gibbs.kmeans$dat$N.Sims - gibbs.kmeans$dat$burnin)){
-  combinedchains = mcmc.list(mcmc(gibbs$draws$mu), mcmc(gibbs.kmeans$draws$mu))
+  # Relabel the cluster assignments so that we have label agreement between the different chains
+  chain2 <- gibbs.kmeans$draws$mu
+  chain2[,1] <- gibbs.kmeans$draws$mu[,3]
+  chain2[,3] <- gibbs.kmeans$draws$mu[,1]
+  combinedchains = mcmc.list(mcmc(gibbs$draws$mu), mcmc(chain2))
   plot(combinedchains)
   gelman.diag(combinedchains)
   gelman.plot(combinedchains)
@@ -145,11 +149,11 @@ aic.relabel <- aic(mcmc = mcmc.out, constraint=2)
 aic.mcmc    <- permute.mcmc(mcmc.out, aic.relabel$permutations)[[1]]
 
 aic.pi  <- mcmc(aic.mcmc[,,1])
-plot(aic.pi, main="AIC: Mix. prop. pi")
+traceplot(aic.pi, main="AIC: Mix. prop. pi")
 aic.mu  <- mcmc(aic.mcmc[,,2])
-plot(aic.mu, main="AIC: Mean mu")
+traceplot(aic.mu, main="AIC: Mean mu")
 aic.tau <- mcmc(aic.mcmc[,,3])
-plot(aic.tau, main="AIC: Precision tau")
+traceplot(aic.tau, main="AIC: Precision tau")
 
 if (stephens){
   ## 2. Stephens' algorithm using KL divergence
@@ -157,9 +161,9 @@ if (stephens){
   KL.mcmc   <- permute.mcmc(mcmc.out,ste.KL$permutations)[[1]]
   
   KL.pi <- mcmc(KL.mcmc[,,1])
-  plot(KL.pi, main="KL: Mix. prop. pi")
+  traceplot(KL.pi, main="KL: Mix. prop. pi")
   KL.mu <- mcmc(KL.mcmc[,,2])
-  plot(KL.mu, main="KL: Mean mu")
+  traceplot(KL.mu, main="KL: Mean mu")
   KL.tau <- mcmc(KL.mcmc[,,3])
-  plot(KL.tau, main="KL: Precision tau")
+  traceplot(KL.tau, main="KL: Precision tau")
 }
