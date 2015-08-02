@@ -47,6 +47,21 @@ gen.poisson <- function(N=500, K=2, pi.c=c(0.6,0.4), lambdas=c(8,22)){
   return (samples)
 }
 
+##=============================================
+# Generate data:  mixture of MV Poissons      #
+##=============================================
+gen.MV.poisson <- function(N=500, K=2, pi.c=c(0.6,0.4), lambdas=matrix(c(16,10,7,30),2,2)){
+  # Sample the N components according to their mixing proportions
+  components  <- sample(1:K, prob=pi.c, size=N, replace=TRUE)
+  # Rows of the mean matrix are clusters and columns are the dimensionality of the data
+  D           <- NCOL(lambdas)
+  # Generate N random samples from a MV-Gaussian, with the corresponding weights
+  samples     <- matrix(0, nrow=N, ncol=D)
+  for (i in 1:N)
+    samples[i,]    <- rpois(2,lambda=lambdas[components[i],])
+  return (samples)
+}
+
 ##============================================
 # Generate data: mixture of 1D Binomials     #
 ##============================================
@@ -55,6 +70,21 @@ gen.binomial <- function(N=500, K=2, pi.c=c(0.6,0.4), p=c(0.3,0.8), r){
   components <- sample(1:K, prob=pi.c, size=N, replace=TRUE)
   # Generate N random samples from a Gaussian, with the corresponding weights
   samples    <- rbinom(n=N, size=r, prob=p[components])
+  return (samples)
+}
+
+##=============================================
+# Generate data:  mixture of MV Poissons      #
+##=============================================
+gen.MV.binomial <- function(N=500, K=2, pi.c=c(0.6,0.4), p=matrix(c(0.1,0.8,0.5,0.2),2,2), r){
+  # Sample the N components according to their mixing proportions
+  components  <- sample(1:K, prob=pi.c, size=N, replace=TRUE)
+  # Rows of the mean matrix are clusters and columns are the dimensionality of the data
+  D           <- NCOL(p)
+  # Generate N random samples from a MV-Gaussian, with the corresponding weights
+  samples     <- matrix(0, nrow=N, ncol=D)
+  for (i in 1:N)
+    samples[i,]    <- rbinom(2, size=r[i,], prob=p[components[i],])
   return (samples)
 }
 
