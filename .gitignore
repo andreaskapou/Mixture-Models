@@ -38,6 +38,7 @@
 .DS_Store?
 .Rhistory
 *.RData
+*.Rapp.history
 ._*
 .Spotlight-V100
 .Trashes
