@@ -15,8 +15,8 @@ set.seed(12345)
 ##=============================================
 # Initialize main variables and generate data #
 ##=============================================
-K   <- 3      # Number of clusters
-N   <- 1000    # Number of objects
+K   <- 3        # Number of clusters
+N   <- 1000     # Number of objects
 X   <- gen.poisson(N=N, K=K, pi.c=c(.3,.2,.5), lambdas=c(4,10,15))
 
 ##=========================
@@ -62,7 +62,8 @@ gibbs.kmeans <- pmm1D.gibbs(X=X,
 ##=====================================
 # Plot the data points and their pdfs #
 ##=====================================
-invisible(readline(prompt="Press [enter] to show the plot"))
+invisible(readline(prompt="Press [enter] to show the plots"))
+par()
 # Create x points from min(X) to max(X)
 x <- seq(from = min(X)-1, to = max(X)+1, by = 1)
 hist(X, breaks = 22, freq=FALSE, col="lightblue", xlim=c(min(X)-1,max(X)+1),

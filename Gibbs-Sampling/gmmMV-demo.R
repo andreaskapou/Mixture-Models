@@ -56,7 +56,8 @@ gibbs <- gmmMV.gibbs(X, K, N.Sims, burnin, Normal, pi.cur, dir.a, logl)
 ##=====================================
 # Plot the data points and their pdfs #
 ##=====================================
-invisible(readline(prompt="Press [enter] to show the plot"))
+invisible(readline(prompt="Press [enter] to show the plots"))
+par()
 # Points to estimate the density and plot the contours
 xpts <- seq(from=min(X[,1])-1,to=max(X[,1])+1,length.out=100)
 ypts <- seq(from=min(X[,2])-1,to=max(X[,2])+1,length.out=100)
