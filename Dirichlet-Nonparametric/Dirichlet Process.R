@@ -87,8 +87,7 @@ for(alpha in c(0.1, 1, 10, 10, 100, 1000, 10000))
 	h = hist(synthdata, plot = F)
 	h$density = h$counts/max(h$counts)
 	plot(h, freq=FALSE)
-	lines(density(synthdata), col = 'brown')
+	lines(density(synthdata), col = 'brown', lwd = 2)
 }
 dev.copy2pdf(file = 'DP-sample-example.pdf')
 
-density(c(1,2,3))
