@@ -15,6 +15,8 @@ bmm1D.gibbs <-  function(X, r, K=2, N.Sims=10000, burnin=5000, params,
   sum.x.k       <- vector(length=K)           # Sample sum for each cluster k 
   diff.k        <- vector(length=K)           # Sum of difference for each cluster k 
   p.draws       <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Success prob of each trial
+  a.draws       <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Success prob of each trial
+  b.draws       <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Success prob of each trial
   pi.draws      <- matrix(0, nrow=N.Sims-burnin, ncol=K) # Mixing Proportions
   if (stephens) # Use Stephens algorithm for relabelling MCMC outputs
     postRespArr   <- array(0, dim=c(N.Sims-burnin, N, K)) # Post resp for each MCMC run
@@ -66,7 +68,10 @@ bmm1D.gibbs <-  function(X, r, K=2, N.Sims=10000, burnin=5000, params,
       }
     }
     # Update posterior mean
-    Binom$p <- p.update(K, Binom, sum.x.k, diff.k)
+    obj_out <- p.update(K, Binom, sum.x.k, diff.k)
+    Binom$p <- obj_out$p.posterior
+    alpha.n <- obj_out$alpha.n
+    beta.n <- obj_out$beta.n
     
     if (ord.constr){
       ##=============================================================
@@ -84,6 +89,8 @@ bmm1D.gibbs <-  function(X, r, K=2, N.Sims=10000, burnin=5000, params,
       C.matrix                <- C.matrix + C.n
       pi.draws[t - burnin,]   <- pi.cur
       p.draws[t - burnin,]    <- Binom$p
+      a.draws[t - burnin,]    <- alpha.n
+      b.draws[t - burnin,]    <- beta.n
       if (stephens) # Use Stephens algorithm for relabelling MCMC outputs
         postRespArr[t-burnin, , ] <- post.resp
     }
@@ -102,11 +109,15 @@ bmm1D.gibbs <-  function(X, r, K=2, N.Sims=10000, burnin=5000, params,
   draws       <- NULL
   draws$pi    <- pi.draws
   draws$p     <- p.draws
+  draws$a     <- a.draws
+  draws$b     <- b.draws
   
   # Object to hold the summaries for the parameters
   summary     <- NULL
   summary$pi  <- apply(pi.draws, 2, mean)   # Expected value of mix. prop.
   summary$p   <- apply(p.draws, 2, mean)    # Expected value of mean
+  summary$a   <- apply(a.draws, 2, mean)    # Expected value of mean
+  summary$b   <- apply(b.draws, 2, mean)    # Expected value of mean
   summary$C   <- C.matrix / (N.Sims-burnin) # Convert C.matrix to probs
   summary$NLL <- NLL
   if (stephens) # Use Stephens algorithm for relabelling MCMC outputs
@@ -116,6 +127,8 @@ bmm1D.gibbs <-  function(X, r, K=2, N.Sims=10000, burnin=5000, params,
   cred.interv     <- NULL
   cred.interv$pi  <- apply(pi.draws, 2, quantile, prob=c(0.025, 0.5, 0.975))
   cred.interv$p   <- apply(p.draws, 2, quantile, prob=c(0.025, 0.5, 0.975))
+  cred.interv$a   <- apply(a.draws, 2, quantile, prob=c(0.025, 0.5, 0.975))
+  cred.interv$b   <- apply(b.draws, 2, quantile, prob=c(0.025, 0.5, 0.975))
   
   return(list(dat=dat, draws=draws, summary=summary, cred.interv=cred.interv))
 }
@@ -159,11 +172,11 @@ pi.update <- function(dir.a, N.k){
 
 # Update the posterior mean
 p.update <- function(K, Binom, sum.x.k, diff.k){
-  p.posterior <- vector(length=K)
+  p.posterior = alpha.n = beta.n <- vector(length=K)
   for (k in 1:K){
-    alpha.n   <- Binom$Beta$a + sum.x.k[k]
-    beta.n    <- Binom$Beta$b + diff.k[k]
-    p.posterior[k] <- rbeta(1, shape1=alpha.n, shape2=beta.n)
+    alpha.n[k]   <- Binom$Beta$a + sum.x.k[k]
+    beta.n[k]    <- Binom$Beta$b + diff.k[k]
+    p.posterior[k] <- rbeta(1, shape1=alpha.n[k], shape2=beta.n[k])
   }
-  return(p.posterior)
+  return(list(p.posterior = p.posterior, alpha.n = alpha.n, beta.n = beta.n))
 }

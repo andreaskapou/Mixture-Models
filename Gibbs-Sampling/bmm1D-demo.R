@@ -16,15 +16,15 @@ set.seed(12345)
 # Initialize main variables and generate data #
 ##=============================================
 K   <- 3      # Number of clusters
-N   <- 1000   # Number of objects
+N   <- 1000    # Number of objects
 r   <- rbinom(n=N, size=50, prob=.8)
 X   <- gen.binomial(N=N, K=K, pi.c=c(.4,.3,.3), p=c(0.2,0.7, 0.4), r=r)
 
 ##=========================
 # Initialize parameters   #
 ##=========================
-N.Sims      <- 10000        # Set the number of simulations
-burnin      <- 5000         # Set how many samples should be discarded
+N.Sims      <- 5000        # Set the number of simulations
+burnin      <- 1000         # Set how many samples should be discarded
 dir.a       <- rep(1, K)    # Dirichlet concentration parameter
 pi.cur      <- rep(1/K, K)  # Initialize mixing proportions for each cluster
 
@@ -68,14 +68,14 @@ gibbs.kmeans <- bmm1D.gibbs(X=X,
 invisible(readline(prompt="Press [enter] to show the plots"))
 par()
 # Create x points from min(X) to max(X)
-x <- seq(from = min(X)-1, to = max(X)+1, by = 1)
-hist(X, breaks = 22, freq=FALSE, col="lightblue", xlim=c(min(X)-1,max(X)+1),
-     ylim = c(0.0, .10), main=paste("Density plot of",K,"Binomial Mixtures"),xlab="x")
+x <- seq(from = 0, to = 1, by = 0.01)
+hist(X/r, breaks = 5, freq=FALSE, col="lightblue", xlim=c(0,1),
+     ylim = c(0.0, 65), main=paste("Density plot of",K,"Binomial Mixtures"),xlab="x")
 
 mixture = 0.0
 for (k in 1:K){
   # Calculate the estimated density
-  density <- dbinom(x, size=40, prob=gibbs$summary$p[k])
+  density <- dbeta(x, shape1 = gibbs$summary$a[k], shape2 = gibbs$summary$b[k])
   mixture <- mixture + density * gibbs$summary$pi[k]
 }
 lines(x,mixture,col="red",lwd=2)
